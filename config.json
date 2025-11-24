@@ -1,0 +1,8 @@
+{
+"RSS_URLS":
+    {
+    "MSCI_WORLD_NEWS_ULR": "https://ir.msci.com/rss/news-releases.xml",
+    "IDEAS_INVERSION_BOLSA" : "https://es.investing.com/rss/news_1065.rss",
+    "NOTICIAS_ECONOMICAS": "https://es.investing.com/rss/news_14.rss"
+    }
+}
