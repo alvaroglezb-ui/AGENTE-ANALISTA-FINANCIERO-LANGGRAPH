@@ -12,3 +12,6 @@ wikipedia
 trustcall
 langgraph-cli[inmem]
 utils
+feedparser
+html2text
+mardkdownify
