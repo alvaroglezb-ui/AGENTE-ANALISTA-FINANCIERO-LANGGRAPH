@@ -2,6 +2,7 @@ import os
 import json
 from pathlib import Path
 from typing import Dict, Optional, Any, TypedDict, List
+from datetime import datetime, date, timedelta
 import requests
 import feedparser
 import html2text
@@ -31,7 +32,7 @@ class extraction(TypedDict):
 
 class RSSFetcher:
     def __init__(self, config: Optional[Dict[str, str]] = None, config_path: Optional[str] = None,
-                 timeout: int = 10, session: Optional[requests.Session] = None):
+                 timeout: int = 20, session: Optional[requests.Session] = None):
         """
         Provide either config (dict with "RSS_URLS") or config_path to a JSON file.
         """
@@ -66,7 +67,8 @@ class RSSFetcher:
             resp = self.session.get(url, timeout=self.timeout)
             resp.raise_for_status()
             parsed = feedparser.parse(resp.content)
-        except Exception:
+        except Exception as e:
+            raise Exception(f"Error fetching feed {name}: {e}")
             parsed = None
         self.feeds[name] = parsed
         return parsed
@@ -80,15 +82,69 @@ class RSSFetcher:
             self.fetch(name, url)
         return self.feeds
 
-    def get_entries(self, name: str) -> list:
+    @staticmethod
+    def _parse_entry_date(entry: feedparser.FeedParserDict) -> Optional[date]:
+        """Extract date from entry, returning a date object or None."""
+        # Try published_parsed first (feedparser's parsed date)
+        if hasattr(entry, "published_parsed") and entry.published_parsed:
+            return date(*entry.published_parsed[:3])
+        # Try updated_parsed as fallback
+        if hasattr(entry, "updated_parsed") and entry.updated_parsed:
+            return date(*entry.updated_parsed[:3])
+        # Try parsing the published string manually
+        pub_str = entry.get("published") or entry.get("pubDate") or ""
+        if pub_str:
+            try:
+                # Use feedparser to parse the date string
+                parsed_entry = feedparser.parse(f"<item><pubDate>{pub_str}</pubDate></item>")
+                if parsed_entry.entries and hasattr(parsed_entry.entries[0], "published_parsed"):
+                    parsed_date = parsed_entry.entries[0].published_parsed
+                    if parsed_date:
+                        return date(*parsed_date[:3])
+            except Exception:
+                pass
+        return None
+
+    def get_entries(self, name: str, filter_date: Optional[date] = None) -> list:
         """
         Return list of entries for a feed name (empty list if none).
+        Optionally filter by a specific date.
         """
         feed = self.feeds.get(name)
         if not feed:
             return []
         # Entries can sometimes be under 'item' as well as 'entries'
-        return feed.get("entries") or feed.get("item") or []
+        entries = feed.get("entries") or feed.get("item") or []
+        if filter_date is None:
+            return entries
+        filtered = []
+        for entry in entries:
+            entry_date = self._parse_entry_date(entry)
+            if entry_date == filter_date:
+                filtered.append(entry)
+        return filtered
+
+    def get_entries_by_date_range(
+        self, name: str, start_date: Optional[date] = None, end_date: Optional[date] = None
+    ) -> list:
+        """Get entries within a date range (inclusive)."""
+        feed = self.feeds.get(name)
+        if not feed:
+            return []
+        entries = feed.get("entries") or feed.get("item") or []
+        if start_date is None and end_date is None:
+            return entries
+        filtered = []
+        for entry in entries:
+            entry_date = self._parse_entry_date(entry)
+            if entry_date is None:
+                continue
+            if start_date and entry_date < start_date:
+                continue
+            if end_date and entry_date > end_date:
+                continue
+            filtered.append(entry)
+        return filtered
 
     def summarize(self, name: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -108,11 +164,12 @@ class RSSFetcher:
                 out[n] = {"entries": 0, "title": None}
         return out
 
-    def iter_entries(self, name: str):
+    def iter_entries(self, name: str, filter_date: Optional[date] = None):
         """
         Generator yielding (published, title, link, entry_dict) for each entry in feed.
+        Optionally filter by a specific date.
         """
-        for entry in self.get_entries(name):
+        for entry in self.get_entries(name, filter_date):
             pub = entry.get("published") or entry.get("pubDate") or ""
             title = entry.get("title") or ""
             link = entry.get("link") or ""
@@ -159,16 +216,30 @@ class Scraper:
         except Exception:
             return ""
 
-    def collect_feed(self, feed_name: str) -> collection:
+    def collect_feed(self, feed_name: str, filter_date: Optional[date] = None) -> collection:
+        """Collect entries for a specific feed, optionally filtered by date."""
         col = self._ensure_collection(feed_name)
-        for entry in self.fetcher.get_entries(feed_name):
+        for entry in self.fetcher.get_entries(feed_name, filter_date):
             content = self._fetch_markdown(entry.get("link", ""))
             col["articles"].append(self._entry_to_article(feed_name, entry, content))
         return col
 
-    def collect_all(self) -> extraction:
+    def collect_all(self, filter_date: Optional[date] = None) -> extraction:
+        """Collect entries from all feeds, optionally filtered by date."""
         for feed_name in self.fetcher.get_feed_urls().keys():
-            self.collect_feed(feed_name)
+            self.collect_feed(feed_name, filter_date)
+        return self.data
+
+    def collect_date_range(
+        self, start_date: Optional[date] = None, end_date: Optional[date] = None
+    ) -> extraction:
+        """Collect entries from all feeds within a date range."""
+        for feed_name in self.fetcher.get_feed_urls().keys():
+            entries = self.fetcher.get_entries_by_date_range(feed_name, start_date, end_date)
+            col = self._ensure_collection(feed_name)
+            for entry in entries:
+                content = self._fetch_markdown(entry.get("link", ""))
+                col["articles"].append(self._entry_to_article(feed_name, entry, content))
         return self.data
 
 
@@ -176,17 +247,17 @@ if __name__ == "__main__":
     fetcher = RSSFetcher(config_path="config/config.json")
     fetcher.fetch_all()
     scraper = Scraper(fetcher)
-    result = scraper.collect_all()
-
-    articles_dir = Path("articles")
-    articles_dir.mkdir(exist_ok=True)
-
-    for col in result["scraping"]:
-        print(f"Fuente: {col['source']} - artículos: {len(col['articles'])}")
-        for idx, article in enumerate(col["articles"], 1):
-            preview = article["content"][:200].replace("\n", " ")
-            print(f"  #{idx}: {article['title']} -> {preview}...")
-            filename = articles_dir / f"{col['source']}_{idx}.txt"
-            with filename.open("w", encoding="utf-8") as fh:
-                fh.write(article["content"])
-
+    
+    # Example: Filter by today's date
+    today = date.today()
+    #result: extraction = scraper.collect_all(filter_date=today)
+    
+    # Example: Filter by date range (last 7 days)
+    # from datetime import timedelta
+    # week_ago = today - timedelta(days=7)
+    result = scraper.collect_date_range(start_date=today-timedelta(days=3), end_date=today)
+    print(result)
+    # Example: Get all entries (no filter)
+    #result: extraction = scraper.collect_all()
+    
+    
