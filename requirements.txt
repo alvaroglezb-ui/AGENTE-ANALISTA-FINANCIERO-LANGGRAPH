@@ -14,4 +14,9 @@ langgraph-cli[inmem]
 utils
 feedparser
 html2text
-mardkdownify
+markdownify
+SQLAlchemy==2.0.23
+psycopg2-binary==2.9.9
+xqlatm==0.1.3     # (supuesto nombre del package que quieres usar)
+python-dotenv==1.0.1
+psycopg2-binary

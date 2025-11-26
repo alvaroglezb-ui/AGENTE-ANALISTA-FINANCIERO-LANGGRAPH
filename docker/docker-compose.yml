@@ -1,0 +1,17 @@
+
+services:
+  db:
+    image: postgres:16
+    container_name: rss_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: rss_user
+      POSTGRES_PASSWORD: rss_password
+      POSTGRES_DB: rss_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - rss_data:/var/lib/postgresql/data
+
+volumes:
+  rss_data:

@@ -6,7 +6,11 @@ from datetime import datetime, date, timedelta
 import requests
 import feedparser
 import html2text
-from markdownify import markdownify as md
+from markdownify import markdownify as md 
+import sys
+import os
+
+
 
 class Article(TypedDict):
     """Single normalized RSS entry."""
@@ -242,22 +246,42 @@ class Scraper:
                 col["articles"].append(self._entry_to_article(feed_name, entry, content))
         return self.data
 
+    def save_to_database(self) -> int:
+        """
+        Save collected articles to database.
+        Uses connection from app.database.connection.
+        
+        Returns:
+            ID of the created extraction record
+        """
+        from app.database.db_manager import DatabaseManager
+        
+        db_manager = DatabaseManager()
+        return db_manager.insert_extraction(self.data)
+
 
 if __name__ == "__main__":
     fetcher = RSSFetcher(config_path="config/config.json")
     fetcher.fetch_all()
     scraper = Scraper(fetcher)
     
-    # Example: Filter by today's date
+    # Example: Filter by date range (last 3 days)
     today = date.today()
-    #result: extraction = scraper.collect_all(filter_date=today)
+    result = scraper.collect_date_range(start_date=today - timedelta(days=3), end_date=today)
     
-    # Example: Filter by date range (last 7 days)
-    # from datetime import timedelta
-    # week_ago = today - timedelta(days=7)
-    result = scraper.collect_date_range(start_date=today-timedelta(days=3), end_date=today)
-    print(result)
-    # Example: Get all entries (no filter)
-    #result: extraction = scraper.collect_all()
+    print(f"\nCollected {sum(len(col['articles']) for col in result['scraping'])} articles")
+    
+    # Save to database
+    print("\nSaving to database...")
+    extraction_id = scraper.save_to_database()
+    print(f"✓ Saved extraction ID: {extraction_id}")
+    
+    # Example: Query database
+    from app.database.db_manager import DatabaseManager
+    db = DatabaseManager()
+    collections = db.get_collections()
+    print(f"\nCollections in database: {len(collections)}")
+    for col in collections:
+        print(f"  - {col['source']}: {col['article_count']} articles")
     
     
