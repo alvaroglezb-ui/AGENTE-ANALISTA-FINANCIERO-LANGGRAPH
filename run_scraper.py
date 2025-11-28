@@ -14,6 +14,7 @@ sys.path.insert(0, str(project_root))
 
 from app.database.db_manager import DatabaseManager
 from app.scrapers.rss_scraper import RSSFetcher, Scraper
+from app.agent.agent import ArticleSummarizerAgent
 from datetime import date, timedelta
 
 
@@ -76,9 +77,22 @@ def main():
         print(f"✗ Error scraping articles: {e}")
         return
     
-    # Step 4: Insert into database
+    # Step 4: Process articles with AI agent (clean markdown and summarize)
     if total_articles > 0:
-        print(f"\n[Step 4] Inserting {total_articles} articles into database...")
+        print(f"\n[Step 4] Processing articles with AI agent...")
+        print("  - Cleaning markdown content")
+        print("  - Generating structured summaries for non-experts")
+        try:
+            agent = ArticleSummarizerAgent()
+            result = agent.process_extraction(result)
+            print("✓ Articles processed and summarized")
+        except Exception as e:
+            print(f"✗ Error processing articles: {e}")
+            print("Continuing without summaries...")
+    
+    # Step 5: Insert into database
+    if total_articles > 0:
+        print(f"\n[Step 5] Inserting {total_articles} articles into database...")
         try:
             extraction_id = db_manager.insert_extraction(result)
             print(f"✓ Successfully inserted extraction ID: {extraction_id}")
@@ -86,11 +100,11 @@ def main():
             print(f"✗ Error inserting into database: {e}")
             return
     else:
-        print("\n[Step 4] No articles to insert.")
+        print("\n[Step 5] No articles to insert.")
         return
     
-    # Step 5: Display database summary
-    print("\n[Step 5] Database Summary:")
+    # Step 6: Display database summary
+    print("\n[Step 6] Database Summary:")
     try:
         collections = db_manager.get_collections()
         print(f"  Total collections: {len(collections)}")

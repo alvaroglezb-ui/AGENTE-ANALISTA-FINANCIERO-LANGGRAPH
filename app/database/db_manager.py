@@ -74,9 +74,16 @@ class DatabaseManager:
                             link=article_data.get("link", ""),
                             published=article_data.get("published", ""),
                             content=article_data.get("content", ""),
+                            summary=article_data.get("summary", ""),
                             collection_id=collection.id
                         )
                         session.add(article)
+                    else:
+                        # Update existing article with summary if provided
+                        if article_data.get("summary"):
+                            existing_article.summary = article_data.get("summary", "")
+                        if article_data.get("content"):
+                            existing_article.content = article_data.get("content", "")
 
             session.commit()
             print(f"✓ Inserted extraction with {len(extraction_data.get('scraping', []))} collections")

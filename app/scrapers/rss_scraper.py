@@ -20,6 +20,7 @@ class Article(TypedDict):
     link: str
     published: str
     content: str
+    summary: str  # Structured summary in plain language
 
 
 class collection(TypedDict):
@@ -200,13 +201,14 @@ class Scraper:
         return new_col
 
     @staticmethod
-    def _entry_to_article(source: str, entry: feedparser.FeedParserDict, content: str) -> Article:
+    def _entry_to_article(source: str, entry: feedparser.FeedParserDict, content: str, summary: str = "") -> Article:
         return Article(
             title=entry.get("title") or "",
             source=source,
             link=entry.get("link") or "",
             published=entry.get("published") or entry.get("pubDate") or "",
             content=content,
+            summary=summary,
         )
 
     def _fetch_markdown(self, url: str) -> str:
