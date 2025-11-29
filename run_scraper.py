@@ -120,6 +120,122 @@ def main():
     print("Pipeline completed successfully!")
     print("=" * 60)
 
+def main_google():
+    """
+    Pipeline for Google News scraping, AI processing, and DB insertion.
+    """
+    from app.scrapers.google_news_scraper import GoogleNewsFetcher
+    from app.agent.tools import clean_markdown, summarize_article
+    from app.database.db_manager import DatabaseManager
+
+    print("\n" + "=" * 60)
+    print("Google News Pipeline Starting...")
+    print("=" * 60)
+    print("[Step 1] Loading config and initializing GoogleNewsFetcher")
+    
+    try:
+        fetcher = GoogleNewsFetcher(config_path="config/config.json")
+        topics = fetcher.get_topics()
+        if not topics:
+            print("✗ No topics found in config.")
+            return
+        print(f"Configured Google News topics: {list(topics.keys())}")
+    except Exception as e:
+        print(f"✗ Error initializing GoogleNewsFetcher: {e}")
+        return
+
+    # Step 2: Collect articles for all topics
+    print("\n[Step 2] Collecting Google News articles...")
+    extraction = {"scraping": []}
+    total_articles = 0
+
+    try:
+        for topic, topic_name in topics.items():
+            articles = fetcher.search(topic)
+            total_articles += len(articles)
+            col = {
+                "source": f"GoogleNews:{topic}",
+                "articles": [],
+            }
+            for entry in articles:
+                # Required structure
+                col["articles"].append({
+                    "title": entry.get("title", ""),
+                    "source": f"GoogleNews:{topic}",
+                    "link": entry.get("link", ""),
+                    "published": entry.get("published", ""),
+                    "content": entry.get("content", ""),
+                    "summary": "",    # to be filled later
+                })
+            extraction["scraping"].append(col)
+        print(f"✓ Collected {total_articles} Google News articles")
+        for col in extraction["scraping"]:
+            print(f"  - {col['source']}: {len(col['articles'])} articles")
+    except Exception as e:
+        print(f"✗ Error scraping Google News articles: {e}")
+        return
+
+    # Step 3: Process articles with AI agent (clean markdown, summarize)
+    if total_articles > 0:
+        print(f"\n[Step 3] Processing Google News articles with AI agent...")
+        from langchain_openai import ChatOpenAI
+        from app.agent.schemas import ArticleSummary
+
+        llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.2, max_tokens=512)
+
+        for col in extraction["scraping"]:
+            for article in col["articles"]:
+                content = article["content"]
+                cleaned = clean_markdown(content, llm)
+                summary_obj = summarize_article(article["title"], cleaned, llm)
+                
+                # Format summary as string with consistent structure (same as agent.py)
+                summary_text = f"""OVERVIEW:
+{summary_obj.overview}
+
+KEY POINTS:
+{chr(10).join(f"• {point}" for point in summary_obj.key_points)}
+
+WHY IT MATTERS:
+{summary_obj.why_it_matters}
+
+SIMPLE EXPLANATION:
+{summary_obj.simple_explanation}"""
+                
+                article["summary"] = summary_text
+                article["content"] = cleaned
+        print("✓ All articles processed and summarized")
+
+    # Step 4: Insert into database
+    if total_articles > 0:
+        print(f"\n[Step 4] Inserting {total_articles} Google News articles into database...")
+        try:
+            db_manager = DatabaseManager()
+            extraction_id = db_manager.insert_extraction(extraction)
+            print(f"✓ Successfully inserted extraction ID: {extraction_id}")
+        except Exception as e:
+            print(f"✗ Error inserting into database: {e}")
+            return
+    else:
+        print("\n[Step 4] No articles to insert.")
+        return
+
+    # Step 5: Display database summary
+    print("\n[Step 5] Database Summary:")
+    try:
+        collections = db_manager.get_collections()
+        print(f"  Total collections: {len(collections)}")
+        total_db_articles = sum(col['article_count'] for col in collections)
+        print(f"  Total articles in database: {total_db_articles}")
+
+        for col in collections:
+            print(f"    - {col['source']}: {col['article_count']} articles")
+    except Exception as e:
+        print(f"✗ Error querying database: {e}")
+
+    print("\n" + "=" * 60)
+    print("Google News pipeline completed successfully!")
+    print("=" * 60)
 
 if __name__ == "__main__":
-    main()
+    main_google()

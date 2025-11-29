@@ -16,6 +16,7 @@ class Article(Base):
     link = Column(String(1000), nullable=False, unique=True)
     published = Column(String(200))
     content = Column(Text)
+    summary = Column(Text)  # AI-generated summary in plain language
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Foreign key to collection

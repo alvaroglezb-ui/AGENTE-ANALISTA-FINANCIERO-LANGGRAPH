@@ -3,5 +3,14 @@
     {
     "MSCI_WORLD_NEWS_ULR": "https://news.google.com/rss/search?q=MSCIWORLD&hl=en-US&gl=US&ceid=US:en&when=today",
     "GOOGLE_NEWS_SP500" : "https://news.google.com/rss/search?q=SP500&hl=en-US&gl=US&ceid=US:en&when=today"
+    },
+"GOOGLE_NEWS_TOPICS":
+    {
+        "SP500": "SP500 News",
+        "TECH": "Tech News",
+        "FINANCE": "Finance News",
+        "ECONOMY": "Economy News",
+        "POLITICS": "Politics News",
+        "MSCI_WORLD": "MSCI_WORLD News"
     }
 }
