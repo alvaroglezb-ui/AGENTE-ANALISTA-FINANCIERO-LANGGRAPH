@@ -21,3 +21,4 @@ xqlatm==0.1.3     # (supuesto nombre del package que quieres usar)
 python-dotenv==1.0.1
 IPython
 pygooglenews
+jinja2
