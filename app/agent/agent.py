@@ -6,10 +6,12 @@ import io
 from typing import TypedDict
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
+from openai import OpenAI
 from app.scrapers.rss_scraper import extraction
-from app.agent.tools import clean_markdown, summarize_article
+from app.agent.tools import clean_markdown, summarize_article, summarize_article_with_web_search
 from IPython.display import Image, display
-
+from dotenv import load_dotenv
+load_dotenv()
 
 class AgentState(TypedDict):
     """State for article processing."""
@@ -21,10 +23,11 @@ class AgentState(TypedDict):
 class ArticleSummarizerAgent:
     """Simple agent that processes articles sequentially."""
     
-    def __init__(self, model: str = "gpt-4o-mini", temperature: float = 0.3):
+    def __init__(self, model: str = os.getenv("AGENT_MODEL"), temperature: float = 0.3):
         self.model = model
         self.temperature = temperature
         self.llm = ChatOpenAI(model=model, temperature=temperature)
+        self.openai = OpenAI()
         self.app = self._build_graph()
         self._graph_to_png()
     
@@ -92,18 +95,18 @@ class ArticleSummarizerAgent:
         # Get article and update in-place
         article = articles[article_index]
         title = article.get("title", "")
+        date = article.get("published", "")
         source = collection.get("source", "Unknown")
         
         print(f"[{source}] Processing {article_index + 1}/{len(articles)}: {title[:50]}...")
         
         try:
             # Step 1: Clean markdown
-            original_content = article.get("content", "")
-            cleaned_content = clean_markdown(original_content, self.llm)
-            article["content"] = cleaned_content
+            original_content = summarize_article_with_web_search(title, article.get("link", ""),date, self.openai)
+            article["content"] = original_content
             
             # Step 2: Generate structured summary
-            summary_obj = summarize_article(title, cleaned_content, self.llm)
+            summary_obj = summarize_article(title, article["content"], self.llm)
             
             # Format summary as string with consistent structure
             summary_text = f"""OVERVIEW:

@@ -9,6 +9,9 @@ from datetime import date, datetime, timedelta
 import requests
 from markdownify import markdownify as md
 from pygooglenews import GoogleNews
+from dotenv import load_dotenv
+load_dotenv()
+
 
 # Import the same TypedDict structures from rss_scraper
 from app.scrapers.rss_scraper import Article, collection, extraction
@@ -55,7 +58,7 @@ class GoogleNewsFetcher:
             when: Time period ('1d', '7d', '1m', '1y', or None for all)
         
         Returns:
-            List of article dictionaries
+            List of article dictionaries (limited to 10 results)
         """
         try:
             if when:
@@ -64,7 +67,8 @@ class GoogleNewsFetcher:
                 results = self.gn.search(query)
             
             articles = results.get('entries', [])
-            return articles
+            # Limit results to 10
+            return articles[:int(os.getenv("MAX_ARTICLES"))]
         except Exception as e:
             print(f"Error searching Google News for '{query}': {e}")
             return []

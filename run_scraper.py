@@ -125,14 +125,21 @@ def main_google():
     Pipeline for Google News scraping, AI processing, and DB insertion.
     """
     from app.scrapers.google_news_scraper import GoogleNewsFetcher
-    from app.agent.tools import clean_markdown, summarize_article
     from app.database.db_manager import DatabaseManager
 
     print("\n" + "=" * 60)
     print("Google News Pipeline Starting...")
     print("=" * 60)
-    print("[Step 1] Loading config and initializing GoogleNewsFetcher")
+    print("Note: Database connection managed by connection.py")
+    print("=" * 60)
     
+    # Step 1: Initialize database and create tables
+    print("\n[Step 1] Creating database tables...")
+    db_manager = DatabaseManager()
+    db_manager.create_tables()
+    
+    # Step 2: Load config and initialize GoogleNewsFetcher
+    print("\n[Step 2] Loading config and initializing GoogleNewsFetcher")
     try:
         fetcher = GoogleNewsFetcher(config_path="config/config.json")
         topics = fetcher.get_topics()
@@ -144,8 +151,8 @@ def main_google():
         print(f"✗ Error initializing GoogleNewsFetcher: {e}")
         return
 
-    # Step 2: Collect articles for all topics
-    print("\n[Step 2] Collecting Google News articles...")
+    # Step 3: Collect articles for all topics
+    print("\n[Step 3] Collecting Google News articles...")
     extraction = {"scraping": []}
     total_articles = 0
 
@@ -175,53 +182,34 @@ def main_google():
         print(f"✗ Error scraping Google News articles: {e}")
         return
 
-    # Step 3: Process articles with AI agent (clean markdown, summarize)
+    # Step 4: Process articles with AI agent (clean markdown, summarize)
     if total_articles > 0:
-        print(f"\n[Step 3] Processing Google News articles with AI agent...")
-        from langchain_openai import ChatOpenAI
-        from app.agent.schemas import ArticleSummary
-
-        llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.2, max_tokens=512)
-
-        for col in extraction["scraping"]:
-            for article in col["articles"]:
-                content = article["content"]
-                cleaned = clean_markdown(content, llm)
-                summary_obj = summarize_article(article["title"], cleaned, llm)
-                
-                # Format summary as string with consistent structure (same as agent.py)
-                summary_text = f"""OVERVIEW:
-{summary_obj.overview}
-
-KEY POINTS:
-{chr(10).join(f"• {point}" for point in summary_obj.key_points)}
-
-WHY IT MATTERS:
-{summary_obj.why_it_matters}
-
-SIMPLE EXPLANATION:
-{summary_obj.simple_explanation}"""
-                
-                article["summary"] = summary_text
-                article["content"] = cleaned
-        print("✓ All articles processed and summarized")
-
-    # Step 4: Insert into database
-    if total_articles > 0:
-        print(f"\n[Step 4] Inserting {total_articles} Google News articles into database...")
+        print(f"\n[Step 4] Processing Google News articles with AI agent...")
+        print("  - Cleaning markdown content")
+        print("  - Generating structured summaries for non-experts")
         try:
-            db_manager = DatabaseManager()
+            agent = ArticleSummarizerAgent()
+            extraction = agent.process_extraction(extraction)
+            print("✓ Articles processed and summarized")
+        except Exception as e:
+            print(f"✗ Error processing articles: {e}")
+            print("Continuing without summaries...")
+
+    # Step 5: Insert into database
+    if total_articles > 0:
+        print(f"\n[Step 5] Inserting {total_articles} Google News articles into database...")
+        try:
             extraction_id = db_manager.insert_extraction(extraction)
             print(f"✓ Successfully inserted extraction ID: {extraction_id}")
         except Exception as e:
             print(f"✗ Error inserting into database: {e}")
             return
     else:
-        print("\n[Step 4] No articles to insert.")
+        print("\n[Step 5] No articles to insert.")
         return
 
-    # Step 5: Display database summary
-    print("\n[Step 5] Database Summary:")
+    # Step 6: Display database summary
+    print("\n[Step 6] Database Summary:")
     try:
         collections = db_manager.get_collections()
         print(f"  Total collections: {len(collections)}")

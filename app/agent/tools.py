@@ -1,12 +1,14 @@
 """
 Tools for article processing: markdown cleaning and summarization.
 """
-
+import os
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+from openai import OpenAI
 from app.agent.schemas import ArticleSummary
-from app.agent.prompts import MARKDOWN_CLEANER_PROMPT, ARTICLE_SUMMARIZER_PROMPT
-
+from app.agent.prompts import MARKDOWN_CLEANER_PROMPT, ARTICLE_SUMMARIZER_PROMPT, ARTICLE_SUMMARIZER_PROMPT_WITH_WEB_SEARCH
+from dotenv import load_dotenv
+load_dotenv()
 
 def clean_markdown(content: str, llm: ChatOpenAI) -> str:
     """
@@ -70,3 +72,32 @@ def summarize_article(title: str, content: str, llm: ChatOpenAI) -> ArticleSumma
             why_it_matters="Unable to determine",
             simple_explanation=f"Error: {str(e)}"
         )
+
+def summarize_article_with_web_search(title: str, url: str, date: str,llm: OpenAI) -> ArticleSummary:
+    """
+    Generate structured summary of an article for non-expert readers.
+    
+    Args:
+        title: Article title
+        URL: Article URL
+        llm: ChatOpenAI instance to use for summarization
+        
+    Returns:
+        ArticleSummary object with structured summary
+    """
+    title = f"Article Title: {title}"
+    url = f"Article URL: {url}"
+
+    response = llm.responses.create(
+        model=os.getenv("WEB_SEARCH_MODEL"),
+        tools=[
+            {
+                "type": "web_search",
+            }
+        ],
+        instructions=ARTICLE_SUMMARIZER_PROMPT_WITH_WEB_SEARCH.format(title=title, url=url, date=date),
+        input=title,
+        tool_choice="required",
+        include=["web_search_call.action.sources"]
+    )
+    return response.output_text
