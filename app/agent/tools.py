@@ -6,12 +6,13 @@ import smtplib
 from pathlib import Path
 from datetime import datetime
 from typing import List
+from app.database.db_manager import DatabaseManager
 from email.mime.text import MIMEText
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from openai import OpenAI
 from app.agent.schemas import ArticleSummary
-from app.agent.prompts import MARKDOWN_CLEANER_PROMPT, ARTICLE_SUMMARIZER_PROMPT, ARTICLE_SUMMARIZER_PROMPT_WITH_WEB_SEARCH
+from app.agent.prompts import MARKDOWN_CLEANER_PROMPT, ARTICLE_SUMMARIZER_PROMPT, ARTICLE_SUMMARIZER_PROMPT_WITH_WEB_SEARCH,ARTICLE_SUMMARIZER_NEWSLETTER_PROMPT
 from dotenv import load_dotenv
 from jinja2 import Template
 load_dotenv()
@@ -61,7 +62,7 @@ def summarize_article(title: str, content: str, llm: ChatOpenAI) -> ArticleSumma
             simple_explanation="No content available to summarize."
         )
     
-    prompt = ChatPromptTemplate.from_template(ARTICLE_SUMMARIZER_PROMPT)
+    prompt = ChatPromptTemplate.from_template(ARTICLE_SUMMARIZER_NEWSLETTER_PROMPT)
     
     # Use structured output with Pydantic
     structured_llm = llm.with_structured_output(ArticleSummary)
@@ -120,12 +121,11 @@ def send_email_with_content(items: List[dict], recipients: List[str]) -> bool:
     
     Args:
         items: List of dictionaries with news items. Each dict should have:
-            - category: str (e.g., "US MARKETS", "EARNINGS")
+            - category: str (same as source)
             - title: str (article title)
             - summary: str (article summary/description)
-            - source: str (source name, e.g., "Bloomberg", "CNBC")
-            - link: str (optional, article URL)
-            - time: str (optional, e.g., "2 hours ago")
+            - source: str (source name)
+            - link: str (article URL)
         recipients: List of recipient email addresses
         
     Returns:
@@ -218,3 +218,46 @@ def send_email_with_content(items: List[dict], recipients: List[str]) -> bool:
         import traceback
         traceback.print_exc()
         return False
+
+
+def aggregate_today_news() -> List[dict]:
+    """
+    Aggregate all news articles from today and format them for email.
+    
+    Returns:
+        List of dictionaries in the format:
+        {
+            "category": str,  # Same as source
+            "title": str,
+            "summary": str,
+            "source": str,
+            "link": str
+        }
+    """
+    db_manager = DatabaseManager()
+    return db_manager.aggregate_today_news()
+
+
+def send_daily_news_email(recipients: List[str]) -> bool:
+    """
+    Aggregate today's news from database and send via email.
+    
+    Args:
+        recipients: List of recipient email addresses
+        
+    Returns:
+        True if email was sent successfully, False otherwise
+    """
+    print("\n[Email Aggregator] Collecting today's news...")
+    
+    # Aggregate today's news
+    news_items = aggregate_today_news()
+    
+    if not news_items:
+        print("✗ No news items found for today")
+        return False
+    
+    print(f"✓ Found {len(news_items)} news items from today")
+    
+    # Send email
+    return send_email_with_content(news_items, recipients)

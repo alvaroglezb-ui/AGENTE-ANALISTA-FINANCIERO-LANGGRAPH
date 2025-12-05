@@ -201,9 +201,9 @@
                                     {{ item.title }}
                                     {% endif %}
                                 </h2>
-                                <p class="summary">
-                                    {{ item.summary }}
-                                </p>
+                                <div class="summary">
+                                    {{ item.summary|safe }}
+                                </div>
                                 <div class="meta">
                                     Source: <span class="source">{{ item.source }}</span>{% if item.time %} • {{ item.time }}{% endif %}
                                 </div>
@@ -227,7 +227,7 @@
                     </p>
                     <p style="margin: 0;">
                         You're receiving this email because you subscribed to market updates.<br>
-                        <a href="www.linkedin.com/in/alvarogonzalezbielza.com">Follow on LinkedIn</a>
+                        <a href="www.linkedin.com/in/alvarogonzalezbielza">Follow on LinkedIn</a>
                     </p>
                     <p style="margin-top: 20px; font-size: 12px; opacity: 0.7;">
                         © 2025 Your Newsletter Name. All rights reserved to Alvaro Gonzalez Bielza.

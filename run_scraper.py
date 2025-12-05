@@ -16,6 +16,7 @@ from app.database.db_manager import DatabaseManager
 from app.scrapers.rss_scraper import RSSFetcher, Scraper
 from app.agent.agent import ArticleSummarizerAgent
 from datetime import date, timedelta
+from app.agent.tools import  send_daily_news_email
 
 
 def main():
@@ -224,6 +225,7 @@ def main_google():
     print("\n" + "=" * 60)
     print("Google News pipeline completed successfully!")
     print("=" * 60)
+    send_daily_news_email(recipients=["alvaroglezb@gmail.com"])
 
 if __name__ == "__main__":
     main_google()

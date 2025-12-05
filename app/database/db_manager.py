@@ -1,4 +1,5 @@
-from typing import Optional
+from typing import Optional, List
+from datetime import datetime, date
 from app.database.connection import get_engine, get_session
 from app.database.models import Base, Article, Collection, Extraction
 from app.scrapers.rss_scraper import extraction as ExtractionType
@@ -130,6 +131,169 @@ class DatabaseManager:
                     "created_at": col.created_at
                 })
             return result
+        finally:
+            session.close()
+
+    def _format_summary_html(self, summary_text: str) -> str:
+        """
+        Convert structured summary text to formatted HTML.
+        
+        Args:
+            summary_text: Plain text summary with structure:
+                OVERVIEW: ...
+                KEY POINTS:
+                • point 1
+                • point 2
+                WHY IT MATTERS: ...
+                SIMPLE EXPLANATION: ...
+        
+        Returns:
+            Formatted HTML string
+        """
+        if not summary_text:
+            return ""
+        
+        html_parts = []
+        lines = summary_text.split('\n')
+        i = 0
+        
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            # OVERVIEW section
+            if line.startswith('OVERVIEW:'):
+                content_parts = [line.replace('OVERVIEW:', '').strip()]
+                i += 1
+                # Collect content until next section or empty line
+                while i < len(lines):
+                    next_line = lines[i].strip()
+                    if next_line.startswith(('KEY POINTS:', 'WHY IT MATTERS:', 'SIMPLE EXPLANATION:')):
+                        break
+                    if not next_line and content_parts:
+                        break
+                    if next_line:
+                        content_parts.append(next_line)
+                    i += 1
+                content = ' '.join(content_parts).strip()
+                if content:
+                    html_parts.append(f'<div style="margin-bottom: 12px;"><strong style="color: #1e3a8a;">Overview:</strong> {content}</div>')
+                continue
+            
+            # KEY POINTS section
+            elif line.startswith('KEY POINTS:'):
+                html_parts.append('<div style="margin-bottom: 12px;"><strong style="color: #1e3a8a;">Key Points:</strong><ul style="margin: 8px 0; padding-left: 20px;">')
+                i += 1
+                # Collect bullet points
+                while i < len(lines):
+                    bullet_line = lines[i].strip()
+                    if bullet_line.startswith('•') or bullet_line.startswith('-'):
+                        # Remove bullet characters from anywhere in the string
+                        point = bullet_line.replace('•', '').replace('-', '').strip()
+                        if point:
+                            html_parts.append(f'<li style="margin-bottom: 6px; line-height: 1.5;">{point}</li>')
+                    elif bullet_line and not bullet_line.startswith(('WHY IT MATTERS:', 'SIMPLE EXPLANATION:', 'OVERVIEW:')):
+                        # Handle points without bullet prefix - still remove any bullet chars
+                        point = bullet_line.replace('•', '').replace('-', '').strip()
+                        if point:
+                            html_parts.append(f'<li style="margin-bottom: 6px; line-height: 1.5;">{point}</li>')
+                    else:
+                        break
+                    i += 1
+                html_parts.append('</ul></div>')
+                continue
+            
+            # WHY IT MATTERS section
+            elif line.startswith('WHY IT MATTERS:'):
+                content_parts = [line.replace('WHY IT MATTERS:', '').strip()]
+                i += 1
+                # Collect content until next section or empty line
+                while i < len(lines):
+                    next_line = lines[i].strip()
+                    if next_line.startswith(('KEY POINTS:', 'OVERVIEW:', 'SIMPLE EXPLANATION:')):
+                        break
+                    if not next_line and content_parts:
+                        break
+                    if next_line:
+                        content_parts.append(next_line)
+                    i += 1
+                content = ' '.join(content_parts).strip()
+                if content:
+                    html_parts.append(f'<div style="margin-bottom: 12px;"><strong style="color: #1e3a8a;">Why It Matters:</strong> {content}</div>')
+                continue
+            
+            # SIMPLE EXPLANATION section
+            elif line.startswith('SIMPLE EXPLANATION:'):
+                content_parts = [line.replace('SIMPLE EXPLANATION:', '').strip()]
+                i += 1
+                # Collect content until next section or empty line
+                while i < len(lines):
+                    next_line = lines[i].strip()
+                    if next_line.startswith(('KEY POINTS:', 'WHY IT MATTERS:', 'OVERVIEW:')):
+                        break
+                    if not next_line and content_parts:
+                        break
+                    if next_line:
+                        content_parts.append(next_line)
+                    i += 1
+                content = ' '.join(content_parts).strip()
+                if content:
+                    html_parts.append(f'<div style="margin-bottom: 12px;"><strong style="color: #1e3a8a;">Simple Explanation:</strong> {content}</div>')
+                continue
+            
+            i += 1
+        
+        # If no structured format found, return as-is with line breaks preserved
+        if not html_parts:
+            formatted = summary_text.replace('\n', '<br>')
+            return f'<div>{formatted}</div>'
+        
+        return ''.join(html_parts)
+
+    def aggregate_today_news(self) -> List[dict]:
+        """
+        Aggregate all news articles from today and format them for email.
+        
+        Returns:
+            List of dictionaries in the format:
+            {
+                "category": str,  # Same as source
+                "title": str,
+                "summary": str,
+                "source": str,
+                "link": str
+            }
+        """
+        session = self.get_session()
+        
+        try:
+            # Get today's date (start of day)
+            today_start = datetime.combine(date.today(), datetime.min.time())
+            today_end = datetime.combine(date.today(), datetime.max.time())
+            
+            # Query articles created today
+            articles = session.query(Article).filter(
+                Article.created_at >= today_start,
+                Article.created_at <= today_end
+            ).order_by(Article.created_at.desc()).all()
+            
+            # Convert to news_items format
+            news_items = []
+            for article in articles:
+                # Only include articles that have summaries
+                if not article.summary:
+                    continue
+                    
+                news_item = {
+                    "category": article.source,  # Use source as category
+                    "title": article.title,
+                    "summary": self._format_summary_html(article.summary),  # Format as HTML
+                    "source": article.source,
+                    "link": article.link
+                }
+                news_items.append(news_item)
+            
+            return news_items
+            
         finally:
             session.close()
 
