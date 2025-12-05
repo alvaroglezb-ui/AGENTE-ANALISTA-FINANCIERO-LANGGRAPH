@@ -9,6 +9,7 @@ from langchain_openai import ChatOpenAI
 from openai import OpenAI
 from app.scrapers.rss_scraper import extraction
 from app.agent.tools import clean_markdown, summarize_article, summarize_article_with_web_search
+from app.agent.language_config import get_language_config, get_header
 from IPython.display import Image, display
 from dotenv import load_dotenv
 load_dotenv()
@@ -108,17 +109,18 @@ class ArticleSummarizerAgent:
             # Step 2: Generate structured summary
             summary_obj = summarize_article(title, article["content"], self.llm)
             
-            # Format summary as string with consistent structure
-            summary_text = f"""OVERVIEW:
+            # Format summary as string with consistent structure using current language
+            lang_config = get_language_config()
+            summary_text = f"""{lang_config["headers"]["overview"]}:
 {summary_obj.overview}
 
-KEY POINTS:
+{lang_config["headers"]["key_points"]}:
 {chr(10).join(f"• {point}" for point in summary_obj.key_points)}
 
-WHY IT MATTERS:
+{lang_config["headers"]["why_it_matters"]}:
 {summary_obj.why_it_matters}
 
-SIMPLE EXPLANATION:
+{lang_config["headers"]["simple_explanation"]}:
 {summary_obj.simple_explanation}"""
             
             article["summary"] = summary_text

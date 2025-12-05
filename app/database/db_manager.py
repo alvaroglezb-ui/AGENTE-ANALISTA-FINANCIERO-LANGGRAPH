@@ -137,21 +137,37 @@ class DatabaseManager:
     def _format_summary_html(self, summary_text: str) -> str:
         """
         Convert structured summary text to formatted HTML.
+        Automatically detects language from summary headers.
         
         Args:
-            summary_text: Plain text summary with structure:
-                OVERVIEW: ...
-                KEY POINTS:
-                • point 1
-                • point 2
-                WHY IT MATTERS: ...
-                SIMPLE EXPLANATION: ...
+            summary_text: Plain text summary with structure (English or Spanish)
         
         Returns:
             Formatted HTML string
         """
+        # Import here to avoid circular import
+        from app.agent.language_config import get_language_config, LANGUAGE_CONFIG
+        
         if not summary_text:
             return ""
+        
+        # Detect language from first header found
+        detected_lang = None
+        for line in summary_text.split('\n'):
+            line_stripped = line.strip()
+            if line_stripped.startswith('RESUMEN:') or line_stripped.startswith('PUNTOS CLAVE:'):
+                detected_lang = "ES"
+                break
+            elif line_stripped.startswith('OVERVIEW:') or line_stripped.startswith('KEY POINTS:'):
+                detected_lang = "ENG"
+                break
+        
+        # Use detected language or fall back to current setting
+        if detected_lang:
+            from app.agent.language_config import LANGUAGE_CONFIG
+            lang_config = LANGUAGE_CONFIG[detected_lang]
+        else:
+            lang_config = get_language_config()
         
         html_parts = []
         lines = summary_text.split('\n')
@@ -160,14 +176,26 @@ class DatabaseManager:
         while i < len(lines):
             line = lines[i].strip()
             
-            # OVERVIEW section
-            if line.startswith('OVERVIEW:'):
-                content_parts = [line.replace('OVERVIEW:', '').strip()]
+            # OVERVIEW/RESUMEN section
+            overview_header = lang_config["headers"]["overview"] + ":"
+            if line.startswith(overview_header) or line.startswith("OVERVIEW:") or line.startswith("RESUMEN:"):
+                header_text = lang_config["display_headers"]["overview"]
+                # Remove any of the possible headers
+                content_parts = [line.replace(overview_header, '').replace("OVERVIEW:", '').replace("RESUMEN:", '').strip()]
+                next_sections = (
+                    lang_config["headers"]["key_points"] + ":",
+                    lang_config["headers"]["why_it_matters"] + ":",
+                    lang_config["headers"]["simple_explanation"] + ":",
+                    "KEY POINTS:", "PUNTOS CLAVE:",
+                    "WHY IT MATTERS:", "POR QUÉ IMPORTA:",
+                    "SIMPLE EXPLANATION:", "EXPLICACIÓN SIMPLE:"
+                )
+                
                 i += 1
                 # Collect content until next section or empty line
                 while i < len(lines):
                     next_line = lines[i].strip()
-                    if next_line.startswith(('KEY POINTS:', 'WHY IT MATTERS:', 'SIMPLE EXPLANATION:')):
+                    if next_line.startswith(next_sections):
                         break
                     if not next_line and content_parts:
                         break
@@ -176,12 +204,23 @@ class DatabaseManager:
                     i += 1
                 content = ' '.join(content_parts).strip()
                 if content:
-                    html_parts.append(f'<div style="margin-bottom: 12px;"><strong style="color: #1e3a8a;">Overview:</strong> {content}</div>')
+                    html_parts.append(f'<div style="margin-bottom: 12px;"><strong style="color: #1e3a8a;">{header_text}</strong> {content}</div>')
                 continue
             
-            # KEY POINTS section
-            elif line.startswith('KEY POINTS:'):
-                html_parts.append('<div style="margin-bottom: 12px;"><strong style="color: #1e3a8a;">Key Points:</strong><ul style="margin: 8px 0; padding-left: 20px;">')
+            # KEY POINTS/PUNTOS CLAVE section
+            key_points_header = lang_config["headers"]["key_points"] + ":"
+            if line.startswith(key_points_header) or line.startswith("KEY POINTS:") or line.startswith("PUNTOS CLAVE:"):
+                header_text = lang_config["display_headers"]["key_points"]
+                next_sections = (
+                    lang_config["headers"]["why_it_matters"] + ":",
+                    lang_config["headers"]["simple_explanation"] + ":",
+                    lang_config["headers"]["overview"] + ":",
+                    "WHY IT MATTERS:", "POR QUÉ IMPORTA:",
+                    "SIMPLE EXPLANATION:", "EXPLICACIÓN SIMPLE:",
+                    "OVERVIEW:", "RESUMEN:"
+                )
+                
+                html_parts.append(f'<div style="margin-bottom: 12px;"><strong style="color: #1e3a8a;">{header_text}</strong><ul style="margin: 8px 0; padding-left: 20px;">')
                 i += 1
                 # Collect bullet points
                 while i < len(lines):
@@ -191,7 +230,7 @@ class DatabaseManager:
                         point = bullet_line.replace('•', '').replace('-', '').strip()
                         if point:
                             html_parts.append(f'<li style="margin-bottom: 6px; line-height: 1.5;">{point}</li>')
-                    elif bullet_line and not bullet_line.startswith(('WHY IT MATTERS:', 'SIMPLE EXPLANATION:', 'OVERVIEW:')):
+                    elif bullet_line and not bullet_line.startswith(next_sections):
                         # Handle points without bullet prefix - still remove any bullet chars
                         point = bullet_line.replace('•', '').replace('-', '').strip()
                         if point:
@@ -202,14 +241,26 @@ class DatabaseManager:
                 html_parts.append('</ul></div>')
                 continue
             
-            # WHY IT MATTERS section
-            elif line.startswith('WHY IT MATTERS:'):
-                content_parts = [line.replace('WHY IT MATTERS:', '').strip()]
+            # WHY IT MATTERS/POR QUÉ IMPORTA section
+            why_matters_header = lang_config["headers"]["why_it_matters"] + ":"
+            if line.startswith(why_matters_header) or line.startswith("WHY IT MATTERS:") or line.startswith("POR QUÉ IMPORTA:"):
+                header_text = lang_config["display_headers"]["why_it_matters"]
+                # Remove any of the possible headers
+                content_parts = [line.replace(why_matters_header, '').replace("WHY IT MATTERS:", '').replace("POR QUÉ IMPORTA:", '').strip()]
+                next_sections = (
+                    lang_config["headers"]["key_points"] + ":",
+                    lang_config["headers"]["simple_explanation"] + ":",
+                    lang_config["headers"]["overview"] + ":",
+                    "KEY POINTS:", "PUNTOS CLAVE:",
+                    "SIMPLE EXPLANATION:", "EXPLICACIÓN SIMPLE:",
+                    "OVERVIEW:", "RESUMEN:"
+                )
+                
                 i += 1
                 # Collect content until next section or empty line
                 while i < len(lines):
                     next_line = lines[i].strip()
-                    if next_line.startswith(('KEY POINTS:', 'OVERVIEW:', 'SIMPLE EXPLANATION:')):
+                    if next_line.startswith(next_sections):
                         break
                     if not next_line and content_parts:
                         break
@@ -218,17 +269,29 @@ class DatabaseManager:
                     i += 1
                 content = ' '.join(content_parts).strip()
                 if content:
-                    html_parts.append(f'<div style="margin-bottom: 12px;"><strong style="color: #1e3a8a;">Why It Matters:</strong> {content}</div>')
+                    html_parts.append(f'<div style="margin-bottom: 12px;"><strong style="color: #1e3a8a;">{header_text}</strong> {content}</div>')
                 continue
             
-            # SIMPLE EXPLANATION section
-            elif line.startswith('SIMPLE EXPLANATION:'):
-                content_parts = [line.replace('SIMPLE EXPLANATION:', '').strip()]
+            # SIMPLE EXPLANATION/EXPLICACIÓN SIMPLE section
+            simple_explanation_header = lang_config["headers"]["simple_explanation"] + ":"
+            if line.startswith(simple_explanation_header) or line.startswith("SIMPLE EXPLANATION:") or line.startswith("EXPLICACIÓN SIMPLE:"):
+                header_text = lang_config["display_headers"]["simple_explanation"]
+                # Remove any of the possible headers
+                content_parts = [line.replace(simple_explanation_header, '').replace("SIMPLE EXPLANATION:", '').replace("EXPLICACIÓN SIMPLE:", '').strip()]
+                next_sections = (
+                    lang_config["headers"]["key_points"] + ":",
+                    lang_config["headers"]["why_it_matters"] + ":",
+                    lang_config["headers"]["overview"] + ":",
+                    "KEY POINTS:", "PUNTOS CLAVE:",
+                    "WHY IT MATTERS:", "POR QUÉ IMPORTA:",
+                    "OVERVIEW:", "RESUMEN:"
+                )
+                
                 i += 1
                 # Collect content until next section or empty line
                 while i < len(lines):
                     next_line = lines[i].strip()
-                    if next_line.startswith(('KEY POINTS:', 'WHY IT MATTERS:', 'OVERVIEW:')):
+                    if next_line.startswith(next_sections):
                         break
                     if not next_line and content_parts:
                         break
@@ -237,7 +300,7 @@ class DatabaseManager:
                     i += 1
                 content = ' '.join(content_parts).strip()
                 if content:
-                    html_parts.append(f'<div style="margin-bottom: 12px;"><strong style="color: #1e3a8a;">Simple Explanation:</strong> {content}</div>')
+                    html_parts.append(f'<div style="margin-bottom: 12px;"><strong style="color: #1e3a8a;">{header_text}</strong> {content}</div>')
                 continue
             
             i += 1

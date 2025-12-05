@@ -1,6 +1,11 @@
 """
 Prompts for article processing.
 """
+import os
+from dotenv import load_dotenv
+from app.agent.language_config import get_language_config
+
+load_dotenv()
 
 MARKDOWN_CLEANER_PROMPT = """You are an expert content extractor. Clean the following markdown content by:
 
@@ -114,27 +119,45 @@ Article Date: {date}
 Begin your research by using web_search to retrieve and analyze the article content, then gather any additional contextual information that will be valuable for summarization.
 """
 
-ARTICLE_SUMMARIZER_NEWSLETTER_PROMPT = """
-You are a clear-headed journalist writing ultra-brief newsletter summaries for readers with zero financial knowledge.
+def get_newsletter_prompt() -> str:
+    """
+    Get the newsletter summarizer prompt based on the current language setting.
+    
+    Returns:
+        Formatted prompt string in the configured language
+    """
+    config = get_language_config()
+    headers = config["headers"]
+    display_headers = config["display_headers"]
+    
+    # Build the prompt dynamically based on language
+    prompt = f"""You are a clear-headed journalist writing ultra-brief newsletter summaries for readers with zero financial knowledge.
 
 **CRITICAL RULES:**
+- {config["prompt_instructions"]}
 - Entire summary MUST fit in MAX 8 lines total (most fit in 6-7).
-- Use simple everyday words. No jargon unless instantly explained in 2-3 words.
+- {config["prompt_language_note"]}
 - Cut everything that is not essential.
 
-**OUTPUT FORMAT (exact structure, keep \n newlines):**
-OVERVIEW: One-line punchy summary of what happened.
+**OUTPUT FORMAT (exact structure, keep \\n newlines):**
+{headers["overview"]}: One-line punchy summary of what happened.
 
-KEY POINTS:
+{headers["key_points"]}:
 • Max 4 short bullets (most important facts only)
 
-WHY IT MATTERS: 1 short sentence.
+{headers["why_it_matters"]}: 1 short sentence.
 
-SIMPLE EXPLANATION: 1-2 very short sentences in plain English.
+{headers["simple_explanation"]}: 1-2 very short sentences in plain language.
 ---
-Article Title: {title}
-Article Content:
-{content}
+{config["article_title_label"]}: {{title}}
+{config["article_content_label"]}:
+{{content}}
 
-Produce only the summary using the exact format above. Never exceed 8 lines total.
+{config["format_instruction"]}
 """
+    return prompt
+
+
+# For backward compatibility, create a variable that can be used directly
+# This will be evaluated at import time based on current language setting
+ARTICLE_SUMMARIZER_NEWSLETTER_PROMPT = get_newsletter_prompt()

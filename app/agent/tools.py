@@ -1,6 +1,12 @@
 """
 Tools for article processing: markdown cleaning and summarization.
 """
+import sys
+from pathlib import Path
+# Add project root to path
+project_root = Path(__file__).parent
+sys.path.insert(0, str(project_root))
+
 import os
 import smtplib
 from pathlib import Path
@@ -12,7 +18,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from openai import OpenAI
 from app.agent.schemas import ArticleSummary
-from app.agent.prompts import MARKDOWN_CLEANER_PROMPT, ARTICLE_SUMMARIZER_PROMPT, ARTICLE_SUMMARIZER_PROMPT_WITH_WEB_SEARCH,ARTICLE_SUMMARIZER_NEWSLETTER_PROMPT
+from app.agent.prompts import MARKDOWN_CLEANER_PROMPT, ARTICLE_SUMMARIZER_PROMPT, ARTICLE_SUMMARIZER_PROMPT_WITH_WEB_SEARCH, get_newsletter_prompt
 from dotenv import load_dotenv
 from jinja2 import Template
 load_dotenv()
@@ -62,7 +68,9 @@ def summarize_article(title: str, content: str, llm: ChatOpenAI) -> ArticleSumma
             simple_explanation="No content available to summarize."
         )
     
-    prompt = ChatPromptTemplate.from_template(ARTICLE_SUMMARIZER_NEWSLETTER_PROMPT)
+    # Get prompt based on current language setting
+    prompt_template = get_newsletter_prompt()
+    prompt = ChatPromptTemplate.from_template(prompt_template)
     
     # Use structured output with Pydantic
     structured_llm = llm.with_structured_output(ArticleSummary)

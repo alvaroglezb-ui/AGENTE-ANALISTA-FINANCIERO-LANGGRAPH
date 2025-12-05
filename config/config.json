@@ -6,6 +6,8 @@
     },
 "GOOGLE_NEWS_TOPICS":
     {
-        "NASDAQ_NEWS": "NASDAQ NEWS"
+        "BIGTECH": "BIG TECH NEWS",
+        "STOCKMARKET" : "STOCK MARKET NEWS",
+        "CONSULTING" : "CONSULTING FIRMS"
     }
 }

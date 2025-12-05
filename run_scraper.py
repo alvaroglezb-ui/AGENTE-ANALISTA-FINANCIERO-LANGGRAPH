@@ -139,7 +139,7 @@ def main_google():
     db_manager = DatabaseManager()
     db_manager.create_tables()
     
-    # Step 2: Load config and initialize GoogleNewsFetcher
+    """# Step 2: Load config and initialize GoogleNewsFetcher
     print("\n[Step 2] Loading config and initializing GoogleNewsFetcher")
     try:
         fetcher = GoogleNewsFetcher(config_path="config/config.json")
@@ -224,7 +224,7 @@ def main_google():
 
     print("\n" + "=" * 60)
     print("Google News pipeline completed successfully!")
-    print("=" * 60)
+    print("=" * 60)"""
     send_daily_news_email(recipients=["alvaroglezb@gmail.com"])
 
 if __name__ == "__main__":
