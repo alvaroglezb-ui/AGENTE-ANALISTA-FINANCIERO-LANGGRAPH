@@ -1,0 +1,44 @@
+services:
+  # Scheduled job that runs main.py every 24 hours
+  - type: cron
+    name: daily-news-scraper
+    env: python
+    schedule: "0 0 * * *"  # Runs at midnight UTC every day (24 hours)
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      # Database configuration (PostgreSQL recommended for Render)
+      - key: POSTGRES_USER
+        sync: false
+      - key: POSTGRES_PASSWORD
+        sync: false
+      - key: POSTGRES_HOST
+        sync: false
+      - key: POSTGRES_PORT
+        value: "5432"
+      - key: POSTGRES_DB
+        sync: false
+      
+      # OpenAI API (required for AI agent)
+      - key: OPENAI_API_KEY
+        sync: false
+      
+      # Email configuration
+      - key: EMAIL_SUBJECT
+        sync: false
+      - key: EMAIL_SENDER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      
+      # Language configuration
+      - key: LANGUAGE
+        value: "ES"  # Default to Spanish, change to "ENG" for English
+      
+      # Agent model configuration
+      - key: AGENT_MODEL
+        value: "gpt-4o-mini"  # Default model
+      
+      # Web search model (if using web search)
+      - key: WEB_SEARCH_MODEL
+        sync: false
