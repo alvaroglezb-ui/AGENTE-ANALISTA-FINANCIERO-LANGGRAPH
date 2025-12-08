@@ -2,7 +2,6 @@
 langgraph
 langgraph-prebuilt
 langgraph-sdk
-langgraph-checkpoint-sqlite
 langgraph-cli[inmem]
 
 # --- LangChain integration ---
