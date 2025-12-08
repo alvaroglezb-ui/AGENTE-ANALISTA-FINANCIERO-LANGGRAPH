@@ -143,7 +143,8 @@ def send_email_with_content(items: List[dict], recipients: List[str]) -> bool:
         ValueError: If required environment variables are not set
     """
     # Get configuration from environment variables
-    subject = os.getenv("EMAIL_SUBJECT")
+    subject_base = os.getenv("EMAIL_SUBJECT")
+    subject = f"{subject_base} {datetime.now().strftime('%Y-%m-%d')}" if subject_base else None
     sender = os.getenv("EMAIL_SENDER")
     password = os.getenv("EMAIL_PASSWORD")
     

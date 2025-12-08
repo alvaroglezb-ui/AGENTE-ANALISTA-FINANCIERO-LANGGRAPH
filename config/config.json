@@ -6,8 +6,7 @@
     },
 "GOOGLE_NEWS_TOPICS":
     {
-        "BIGTECH": "BIG TECH NEWS",
-        "STOCKMARKET" : "STOCK MARKET NEWS",
-        "CONSULTING" : "CONSULTING FIRMS"
+
+        "GENERATIVE_AI_NEWS" : "GENERATIVEAI"
     }
 }

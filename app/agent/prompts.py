@@ -139,21 +139,33 @@ def get_newsletter_prompt() -> str:
 - {config["prompt_language_note"]}
 - Cut everything that is not essential.
 
+**COHERENCE REQUIREMENTS (CRITICAL):**
+- The summary must read as ONE cohesive story, not disconnected parts.
+- The {headers["overview"]} introduces the main theme that ALL other sections must connect to.
+- {headers["key_points"]} should build logically from the overview, using consistent terminology.
+- {headers["why_it_matters"]} must directly connect the key points to real-world impact.
+- {headers["simple_explanation"]} should tie everything together, referencing concepts from previous sections.
+- Use the SAME key terms, companies, and concepts throughout all sections for consistency.
+- Each section should flow naturally into the next - think of it as telling a complete story in 8 lines.
+
 **OUTPUT FORMAT (exact structure, keep \\n newlines):**
-{headers["overview"]}: One-line punchy summary of what happened.
+{headers["overview"]}: One-line punchy summary that establishes the main theme. This theme must thread through all sections.
 
 {headers["key_points"]}:
-• Max 4 short bullets (most important facts only)
+• Max 4 short bullets that directly support and expand on the overview theme
+• Use consistent terminology with the overview
+• Build a logical progression of facts
 
-{headers["why_it_matters"]}: 1 short sentence.
+{headers["why_it_matters"]}: 1 short sentence that connects the key points above to real-world impact. Reference the main theme from the overview.
 
-{headers["simple_explanation"]}: 1-2 very short sentences in plain language.
+{headers["simple_explanation"]}: 1-2 very short sentences that weave together the overview, key points, and why it matters into a cohesive narrative. Use the same key terms for consistency.
 ---
 {config["article_title_label"]}: {{title}}
 {config["article_content_label"]}:
 {{content}}
 
 {config["format_instruction"]}
+Remember: This is ONE story, not four separate pieces. Read your summary back - does it flow as a coherent narrative?
 """
     return prompt
 
