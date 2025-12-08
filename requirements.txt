@@ -16,7 +16,8 @@ utils
 feedparser
 html2text
 markdownify
-SQLAlchemy==2.0.23     # (supuesto nombre del package que quieres usar)
+SQLAlchemy==2.0.23
+psycopg2-binary  # PostgreSQL driver (required for Render deployment)
 python-dotenv==1.0.1
 IPython
 pygooglenews

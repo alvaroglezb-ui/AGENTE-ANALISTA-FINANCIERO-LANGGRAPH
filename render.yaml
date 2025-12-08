@@ -1,3 +1,10 @@
+databases:
+  # PostgreSQL Database
+  - name: news-scraper-db
+    databaseName: rss_articles
+    user: rss_user
+    plan: free  # Use 'starter' or 'standard' for production
+
 services:
   # Scheduled job that runs main.py every 24 hours
   - type: cron
@@ -7,17 +14,27 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python main.py
     envVars:
-      # Database configuration (PostgreSQL recommended for Render)
+      # Database configuration - automatically linked from database above
       - key: POSTGRES_USER
-        sync: false
+        fromDatabase:
+          name: news-scraper-db
+          property: user
       - key: POSTGRES_PASSWORD
-        sync: false
+        fromDatabase:
+          name: news-scraper-db
+          property: password
       - key: POSTGRES_HOST
-        sync: false
+        fromDatabase:
+          name: news-scraper-db
+          property: host
       - key: POSTGRES_PORT
-        value: "5432"
+        fromDatabase:
+          name: news-scraper-db
+          property: port
       - key: POSTGRES_DB
-        sync: false
+        fromDatabase:
+          name: news-scraper-db
+          property: database
       
       # OpenAI API (required for AI agent)
       - key: OPENAI_API_KEY
