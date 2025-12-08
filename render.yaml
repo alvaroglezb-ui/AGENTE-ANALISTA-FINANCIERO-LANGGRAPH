@@ -9,7 +9,6 @@ services:
   # Scheduled job that runs main.py every 24 hours
   - type: cron
     name: daily-news-scraper
-    runtime: python3.12
     env: python
     schedule: "0 0 * * *"  # Runs at midnight UTC every day (24 hours)
     buildCommand: pip install -r requirements.txt
