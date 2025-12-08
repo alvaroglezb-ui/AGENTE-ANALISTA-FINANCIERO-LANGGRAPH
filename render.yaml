@@ -60,3 +60,7 @@ services:
       # Web search model (if using web search)
       - key: WEB_SEARCH_MODEL
         sync: false
+
+      # Articles to Fectch
+      - key:  MAX_ARTICLES
+        value: "2"
