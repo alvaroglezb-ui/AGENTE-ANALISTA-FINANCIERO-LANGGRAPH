@@ -31,6 +31,6 @@ notebook
 tavily-python
 
 # --- Database + ORM ---
-SQLAlchemy==2.0.21
+SQLAlchemy
 psycopg2-binary
 
