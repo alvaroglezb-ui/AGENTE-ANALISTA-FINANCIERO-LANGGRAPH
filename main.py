@@ -189,7 +189,7 @@ def main_google():
         try:
             for topic, topic_name in topics.items():
                 logger.info(f"Searching for topic: {topic} ({topic_name})")
-                articles = fetcher.search(topic,when='1d')
+                articles = fetcher.search(topic_name,when='1d')
                 total_articles += len(articles)
                 logger.info(f"  Found {len(articles)} articles for {topic}")
                 

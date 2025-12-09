@@ -105,7 +105,7 @@ def summarize_article_with_web_search(title: str, url: str, date: str,llm: OpenA
 
     response = llm.responses.create(
         model=os.getenv("WEB_SEARCH_MODEL"),
-        reasoning={"effort": "low"}
+        reasoning={"effort": "low"},
         tools=[
             {
                 "type": "web_search",
