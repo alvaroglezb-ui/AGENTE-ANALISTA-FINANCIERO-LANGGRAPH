@@ -1,0 +1,39 @@
+Oracle (ORCL) is set to report quarterly earnings after the bell on Wednesday. Wall Street is closely watching the cloud firm's results for any signs of cracks in the AI bubble.
+
+The fast-growing AI player is expected to report earnings per share of $1.64 for its fiscal second quarter, according to consensus estimates of analysts tracked by Bloomberg, up from $1.47 the previous year. Oracle is projected to report revenue of $16.21 billion for the period, up 15% from the year-ago quarter.
+
+And the tech firm's closely watched AI segment, Oracle Cloud Infrastructure (OCI), is expected to report a 68% climb in revenue to nearly $4.1 billion.
+
+Oracle stock has plummeted 33% from a high of $328 in September, while the "Magnificent Seven" have cumulatively gained more than 11%, according to a Bloomberg index of the major tech stocks.
+
+Oracle stock peaked this fall as Wall Street applauded the company's massive, AI-fueled RPO, or remaining performance obligations — a measure of future revenue from customer contracts — whichjumped roughly 360%to $455 billion in the first quarter, driven by a $300 billion deal with OpenAI (OPAI.PVT).
+
+But shares pulled back as Oracle's heavy reliance upon OpenAI to reach itsambitious revenue targetsput investors on edge, given that the ChatGPT developer has taken oncostsfar in excess of itsprojected revenue.
+
+Oracle has also centered in broader fears over an AI bubble, as investors grow concerned over the increasing use of debt to fund tech firms' data center projects, as well as the entanglement of companies participating in the AI boom through multibillion-dollarcircular financing arrangements.
+
+Oracle had around $105 billion in total debt as of last quarter, issuing nearly $25.8 billion in corporate bonds this year alone as its investments in AI have soared.
+
+The increasinguse of debtto fund capital spending in the AI race has shaken investors, raising concerns that the tech rally has relied too heavily on speculative future returns and pushed company valuations beyond what their fundamentals justify.
+
+"ORCL [Oracle] has been the battleground for AI debt concerns," Jefferies analyst Brent Thill wrote in a November note.
+
+Oracle's debt is perceived as riskier than that of its peers, with a BBB rating on its bonds, compared with Meta's (META) and Amazon's (AMZN) AA- and Alphabet's (GOOGL) AA, according to Bloomberg composite ratings from major credit agencies.
+
+Earlier this month, the cost of insuring Oracle's debt against default, as measured by its credit default swap pricing, climbed to its highest level since 2009, according to Intercontinental Exchange (ICE) data shared with Yahoo Finance.
+
+Oracle has taken on more debt just as its costs have grown. The company's capital expenditures soared to $8.5 billion in the first quarter from $2.3 billion in the prior year.
+
+"Concerns around ORCL's ability to fund its aggressive AI-driven capex plan have intensified," Thill wrote in a separate note this week.
+
+Still, he said he sees "more upside than downside" for the stock, given its recent pullback.
+
+JPMorgan analyst Mark Murphy said of Oracle's rising costs: "[U]ltimately we view this as a trade-off for potential revenue growth in the longer term ... we believe investor sentiment may remain positive as long as OCI growth continues to outpace that of the major hyperscalers."
+
+Options trading implies shares could swing 10% in either direction following Oracle's results, per Bloomberg data.
+
+Laura Bratton is a reporter for Yahoo Finance. Follow her on Bluesky @laurabratton.bsky.social. Email her at laura.bratton@yahooinc.com.
+
+Click here for the latest technology news that will impact the stock market
+
+Read the latest financial and business news from Yahoo Finance
