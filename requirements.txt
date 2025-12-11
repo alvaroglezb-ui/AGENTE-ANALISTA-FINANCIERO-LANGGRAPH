@@ -16,9 +16,9 @@ utils
 feedparser
 html2text
 markdownify
-SQLAlchemy==2.0.23
-xqlatm==0.1.3     # (supuesto nombre del package que quieres usar)
+SQLAlchemy==2.0.23  # (supuesto nombre del package que quieres usar)
 python-dotenv==1.0.1
 IPython
 pygooglenews
 jinja2
+bs4

@@ -103,7 +103,13 @@ class ArticleSummarizerAgent:
         
         try:
             # Step 1: Clean markdown
-            original_content = summarize_article_with_web_search(title, article.get("link", ""),date, self.openai)
+            
+            # Use existing content if available, otherwise fetch with web search
+            existing_content = article.get("content", "")
+            if existing_content and existing_content.strip():
+                original_content = existing_content
+            else:
+                original_content = summarize_article_with_web_search(title, article.get("link", ""),date, self.openai)
             article["content"] = original_content
             
             # Step 2: Generate structured summary

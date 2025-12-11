@@ -10,6 +10,7 @@ import requests
 import feedparser
 from markdownify import markdownify as md
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
 load_dotenv()
 
 # Import the same TypedDict structures from rss_scraper
@@ -239,30 +240,68 @@ class YahooScraper:
             summary=summary,
         )
     
-    def _fetch_markdown(self, url: str) -> str:
-        """
-        Fetch article content and convert to markdown.
+    def _fetch_content(self, html_content: str) -> str:
+        """Extrae el contenido principal del artículo de Yahoo Finance"""
+        try:
+            soup = BeautifulSoup(html_content, 'html.parser')
+            
+            # Extraer datos del artículo
+            articulo = {}
+            
+            # Título del artículo
+            titulo = soup.find('h1')
+            articulo['titulo'] = titulo.get_text(strip=True) if titulo else ''
+            
+            # Autor
+            autor = soup.find('div', class_='author-info') or soup.find('span', class_='author')
+            articulo['autor'] = autor.get_text(strip=True) if autor else ''
+            
+            # Fecha de publicación
+            fecha = soup.find('time')
+            articulo['fecha'] = fecha.get('datetime') if fecha else ''
+            
+            # Contenido del artículo - Yahoo Finance usa diferentes estructuras
+            contenido_principal = []
+            
+            # Buscar el contenido en diferentes posibles contenedores
+            article_body = (
+                soup.find('div', class_='article-body') or 
+                soup.find('div', class_='caas-body') or
+                soup.find('article') or
+                soup.find('div', {'data-test': 'article-body'})
+            )
+            
+            if article_body:
+                # Extraer párrafos
+                parrafos = article_body.find_all('p')
+                for p in parrafos:
+                    texto = p.get_text(strip=True)
+                    if texto and len(texto) > 50:  # Filtrar párrafos muy cortos
+                        contenido_principal.append(texto)
+            
+            articulo['contenido'] = '\n\n'.join(contenido_principal)
+            articulo['num_parrafos'] = len(contenido_principal)
+            
+            return articulo
         
-        Args:
-            url: Article URL
-        
-        Returns:
-            Markdown content string
-        """
-        if not url:
-            return ""
+        except Exception as e:
+            print(f"Error al extraer contenido: {e}")
+            return None
+    
+
+    def _fetch_html(self, url: str) -> str:
+        """Obtiene el contenido HTML de una URL"""
         try:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             }
-            response = requests.get(url, headers=headers, timeout=15, verify=False)
+            response = requests.get(url, headers=headers, timeout=15)
             response.raise_for_status()
-            html_content = response.text
-            markdown_content = md(html_content)
-            return markdown_content
-        except Exception as e:
-            print(f"Error fetching content from {url}: {e}")
-            return ""
+            return response.text
+        
+        except requests.exceptions.RequestException as e:
+            print(f"Error al obtener {url}: {e}")
+            return None
     
     def collect_feed(self, feed_name: str, filter_date: Optional[date] = None) -> collection:
         """
@@ -324,21 +363,11 @@ class YahooScraper:
             entries = entries[:max_articles]
             
             for entry in entries:
-                content = self._fetch_markdown(entry.get("link", ""))
+                html = self._fetch_html(entry.get("link", ""))
+                articulo = self._fetch_content(html)
+                content = articulo['contenido'] 
                 col["articles"].append(self._entry_to_article(feed_name, entry, content))
-        
+
         return self.data
     
-    def save_to_database(self) -> int:
-        """
-        Save collected articles to database.
-        Uses connection from app.database.connection.
-        
-        Returns:
-            ID of the created extraction record
-        """
-        from app.database.db_manager import DatabaseManager
-        
-        db_manager = DatabaseManager()
-        return db_manager.insert_extraction(self.data)
 

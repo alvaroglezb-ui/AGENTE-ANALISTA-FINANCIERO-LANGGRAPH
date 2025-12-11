@@ -239,7 +239,7 @@ def main_yahoo():
     from datetime import date, timedelta
 
     config_path = "config/config.json"
-    days_back = 20
+    days_back = 1
 
     print("=" * 60)
     print("Yahoo RSS Scraper - Database Pipeline")
@@ -323,7 +323,7 @@ def main_yahoo():
     print("\n" + "=" * 60)
     print("Yahoo News pipeline completed successfully!")
     print("=" * 60)
-    send_daily_news_email(recipients=["alvaroglezb@gmail.com"])
+    send_daily_news_email(recipients=["alvaroglezb@gmail.com", "alvarocarmo11@gmail.com"])
 
 
 
