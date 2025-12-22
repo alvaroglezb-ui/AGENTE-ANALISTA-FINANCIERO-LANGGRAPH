@@ -20,3 +20,13 @@ class ArticleSummary(BaseModel):
     simple_explanation: str = Field(
         description="A complete summary in 2-3 paragraphs using everyday language, as if explaining to a friend with no financial background"
     )
+
+
+class ArticleRank(BaseModel):
+    """Ranking score for a financial article."""
+    
+    score: float = Field(
+        description="Relevance and importance score from 0 to 100, where 100 is most relevant/important",
+        ge=0.0,
+        le=100.0
+    )

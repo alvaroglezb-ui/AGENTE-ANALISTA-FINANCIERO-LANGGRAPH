@@ -17,8 +17,8 @@ from email.mime.text import MIMEText
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from openai import OpenAI
-from app.agent.schemas import ArticleSummary
-from app.agent.prompts import MARKDOWN_CLEANER_PROMPT, ARTICLE_SUMMARIZER_PROMPT, ARTICLE_SUMMARIZER_PROMPT_WITH_WEB_SEARCH, get_newsletter_prompt
+from app.agent.schemas import ArticleSummary, ArticleRank
+from app.agent.prompts import MARKDOWN_CLEANER_PROMPT, ARTICLE_SUMMARIZER_PROMPT, ARTICLE_SUMMARIZER_PROMPT_WITH_WEB_SEARCH, get_newsletter_prompt, get_article_ranking_prompt
 from dotenv import load_dotenv
 from jinja2 import Template
 load_dotenv()
@@ -87,6 +87,44 @@ def summarize_article(title: str, content: str, llm: ChatOpenAI) -> ArticleSumma
             why_it_matters="Unable to determine",
             simple_explanation=f"Error: {str(e)}"
         )
+
+def rank_article(title: str, content: str, link: str, published: str, llm: ChatOpenAI) -> float:
+    """
+    Rank an article using LLM to assign a relevance and importance score.
+    
+    Args:
+        title: Article title
+        content: Article content
+        link: Article URL
+        published: Publication date
+        llm: ChatOpenAI instance to use for ranking
+        
+    Returns:
+        Ranking score as float (0-100)
+    """
+    if not content or not title:
+        return 0.0
+    
+    # Get prompt based on current language setting
+    prompt_template = get_article_ranking_prompt()
+    prompt = ChatPromptTemplate.from_template(prompt_template)
+    
+    # Use structured output with Pydantic
+    structured_llm = llm.with_structured_output(ArticleRank)
+    chain = prompt | structured_llm
+    
+    try:
+        rank_result = chain.invoke({
+            "title": title,
+            "content": content[:5000] if len(content) > 5000 else content,  # Limit content length
+            "link": link,
+            "published": published
+        })
+        return rank_result.score
+    except Exception as e:
+        print(f"Error ranking article '{title[:50]}...': {e}")
+        return 0.0
+
 
 def summarize_article_with_web_search(title: str, url: str, date: str,llm: OpenAI) -> ArticleSummary:
     """

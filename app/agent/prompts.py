@@ -188,3 +188,141 @@ Before responding, verify:
 # For backward compatibility, create a variable that can be used directly
 # This will be evaluated at import time based on current language setting
 ARTICLE_SUMMARIZER_NEWSLETTER_PROMPT = get_newsletter_prompt()
+
+
+def get_article_ranking_prompt() -> str:
+    """
+    Get the article ranking prompt based on the current language setting.
+    
+    Returns:
+        Formatted prompt string in the configured language for ranking articles
+    """
+    config = get_language_config()
+    lang_code = config["code"]
+    
+    if lang_code == "ES":
+        prompt = """Eres un experto curador de contenido financiero especializado en identificar noticias que resuenen con profesionales jóvenes (20-35 años) que trabajan en corporativos y están interesados en tecnología, mercados de acciones, empresas innovadoras y crecimiento personal.
+
+**TU TAREA:**
+Evalúa el siguiente artículo y asigna un score de relevancia e interés de 0 a 100, donde:
+- 100: Noticia extremadamente relevante y llamativa (impacto directo en tecnología, AI, agentes, nuevas empresas, herramientas innovadoras, o mercados tech)
+- 80-99: Noticia muy relevante (empresas tech importantes, avances en AI/agentes, nuevas herramientas/productos disruptivos, IPOs tech, tendencias de mercado relevantes)
+- 60-79: Noticia moderadamente relevante (empresas corporativas interesantes, innovaciones tecnológicas, análisis de mercado tech, startups prometedoras)
+- 40-59: Noticia de relevancia baja (contenido corporativo tradicional, noticias financieras generales sin enfoque tech)
+- 0-39: Noticia de relevancia muy baja o irrelevante (contenido promocional, rumores sin fundamento, noticias obsoletas, temas no relacionados con tech/mercados/empresas)
+
+**CRITERIOS DE EVALUACIÓN (PRIORIZADOS PARA AUDIENCIA JOVEN CORPORATIVA):**
+
+1. **Relevancia Tecnológica y de Innovación** (ALTA PRIORIDAD):
+   - Agentes de IA (AI agents), asistentes inteligentes, automatización
+   - Inteligencia Artificial: nuevos modelos, aplicaciones empresariales, herramientas de productividad
+   - Nuevas herramientas y productos tecnológicos disruptivos
+   - Startups y nuevas empresas innovadoras (especialmente tech)
+   - Empresas tech: Apple, Google, Microsoft, Meta, Amazon, NVIDIA, Tesla, OpenAI, etc.
+   - IPOs y rondas de financiación de empresas tech
+
+2. **Mercados de Acciones y Empresas** (ALTA PRIORIDAD):
+   - Movimientos significativos en acciones de empresas tech
+   - Análisis de empresas corporativas relevantes para profesionales jóvenes
+   - Fusiones y adquisiciones en sectores tech/innovación
+   - Tendencias de mercado que afectan a inversores jóvenes
+   - Empresas que están transformando industrias tradicionales
+
+3. **Actualidad y Urgencia** (CRÍTICO):
+   - Noticias de última hora y breaking news
+   - Información muy reciente (últimas 24-48 horas tiene mayor valor)
+   - Eventos actuales vs. históricos o análisis retrospectivos
+   - Descarta completamente noticias obsoletas o con más de una semana
+
+4. **Llamativo e Interesante** (ALTA PRIORIDAD):
+   - Títulos y contenido que capten la atención de profesionales ambiciosos
+   - Noticias que inspiren o motiven a mejorar profesionalmente
+   - Contenido que genere conversación o sea compartible
+   - Historias de éxito, innovación disruptiva, cambios de paradigma
+   - Información práctica o insights accionables
+
+5. **Relevancia para Crecimiento Personal y Profesional**:
+   - Tendencias que afectan el futuro del trabajo
+   - Herramientas que mejoran productividad o habilidades
+   - Insights sobre cómo las empresas están innovando
+   - Oportunidades de aprendizaje o desarrollo profesional
+
+**INSTRUCCIONES ESPECÍFICAS:**
+- PRIORIZA noticias sobre: AI, Agentes, nuevas herramientas tech, empresas tech, startups innovadoras, mercados de acciones tech
+- VALORA MUCHO la actualidad: noticias de las últimas 24-48 horas reciben scores más altos
+- BUSCA contenido llamativo que resuene con profesionales jóvenes ambiciosos
+- DESCARTAR: contenido promocional obvio, rumores sin fundamento, noticias obsoletas (>1 semana), temas financieros tradicionales sin conexión tech
+- CONSIDERA el contexto: ¿esta noticia sería interesante para alguien de 25-30 años trabajando en tech/corporativo?
+- ASIGNA scores más altos a noticias que combinen múltiples criterios (ej: nueva herramienta AI de una startup que acaba de levantar capital)
+
+**ARTÍCULO A EVALUAR:**
+Título: {title}
+Fecha de Publicación: {published}
+URL: {link}
+Contenido: {content}
+
+Asigna un score de relevancia e interés de 0 a 100 para este artículo, considerando que la audiencia objetivo son profesionales jóvenes (20-35 años) interesados en tecnología, mercados de acciones, empresas innovadoras, AI, agentes y nuevas herramientas."""
+    else:  # ENG
+        prompt = """You are an expert content curator specializing in identifying financial news that resonates with young professionals (20-35 years old) who work in corporate environments and are interested in technology, stock markets, innovative companies, and personal growth.
+
+**YOUR TASK:**
+Evaluate the following article and assign a relevance and interest score from 0 to 100, where:
+- 100: Extremely relevant and catchy news (direct impact on technology, AI, agents, new companies, innovative tools, or tech markets)
+- 80-99: Very relevant news (important tech companies, AI/agent advances, new disruptive tools/products, tech IPOs, relevant market trends)
+- 60-79: Moderately relevant news (interesting corporate companies, technological innovations, tech market analysis, promising startups)
+- 40-59: Low relevance news (traditional corporate content, general financial news without tech focus)
+- 0-39: Very low relevance or irrelevant news (promotional content, unfounded rumors, obsolete news, topics unrelated to tech/markets/companies)
+
+**EVALUATION CRITERIA (PRIORITIZED FOR YOUNG CORPORATE AUDIENCE):**
+
+1. **Technology and Innovation Relevance** (HIGH PRIORITY):
+   - AI Agents, intelligent assistants, automation
+   - Artificial Intelligence: new models, enterprise applications, productivity tools
+   - New disruptive technological tools and products
+   - Startups and innovative new companies (especially tech)
+   - Tech companies: Apple, Google, Microsoft, Meta, Amazon, NVIDIA, Tesla, OpenAI, etc.
+   - IPOs and funding rounds of tech companies
+
+2. **Stock Markets and Companies** (HIGH PRIORITY):
+   - Significant movements in tech company stocks
+   - Analysis of corporate companies relevant to young professionals
+   - Mergers and acquisitions in tech/innovation sectors
+   - Market trends affecting young investors
+   - Companies transforming traditional industries
+
+3. **Timeliness and Urgency** (CRITICAL):
+   - Breaking news and latest updates
+   - Very recent information (last 24-48 hours has higher value)
+   - Current events vs. historical or retrospective analysis
+   - Completely discard obsolete news or news older than one week
+
+4. **Catchy and Interesting** (HIGH PRIORITY):
+   - Titles and content that capture the attention of ambitious professionals
+   - News that inspires or motivates professional improvement
+   - Content that generates conversation or is shareable
+   - Success stories, disruptive innovation, paradigm shifts
+   - Practical information or actionable insights
+
+5. **Relevance for Personal and Professional Growth**:
+   - Trends affecting the future of work
+   - Tools that improve productivity or skills
+   - Insights on how companies are innovating
+   - Learning opportunities or professional development
+
+**SPECIFIC INSTRUCTIONS:**
+- PRIORITIZE news about: AI, Agents, new tech tools, tech companies, innovative startups, tech stock markets
+- VALUE timeliness highly: news from the last 24-48 hours receives higher scores
+- LOOK FOR catchy content that resonates with ambitious young professionals
+- DISCARD: obvious promotional content, unfounded rumors, obsolete news (>1 week old), traditional financial topics without tech connection
+- CONSIDER the context: would this news be interesting to someone 25-30 years old working in tech/corporate?
+- ASSIGN higher scores to news that combines multiple criteria (e.g., new AI tool from a startup that just raised capital)
+
+**ARTICLE TO EVALUATE:**
+Title: {title}
+Publication Date: {published}
+URL: {link}
+Content: {content}
+
+Assign a relevance and interest score from 0 to 100 for this article, considering that the target audience is young professionals (20-35 years old) interested in technology, stock markets, innovative companies, AI, agents, and new tools."""
+    
+    return prompt

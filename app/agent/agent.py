@@ -8,7 +8,7 @@ from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
 from openai import OpenAI
 from app.scrapers.rss_scraper import extraction
-from app.agent.tools import clean_markdown, summarize_article, summarize_article_with_web_search
+from app.agent.tools import clean_markdown, summarize_article, summarize_article_with_web_search, rank_article
 from app.agent.language_config import get_language_config, get_header
 from IPython.display import Image, display
 from dotenv import load_dotenv
@@ -35,8 +35,10 @@ class ArticleSummarizerAgent:
     def _build_graph(self):
         """Build simple LangGraph workflow."""
         graph = StateGraph(AgentState)
+        graph.add_node("rank", self._rank_node)
         graph.add_node("process", self._process_node)
-        graph.set_entry_point("process")
+        graph.set_entry_point("rank")
+        graph.add_edge("rank", "process")
         graph.add_conditional_edges(
             "process",
             self._should_continue,
@@ -70,6 +72,103 @@ class ArticleSummarizerAgent:
                 
         except Exception as e:
             print(f"⚠️  Warning: Could not save graph schema: {e}")
+    
+    def _rank_node(self, state: AgentState) -> AgentState:
+        """Rank all articles and select top 10 based on ranking score."""
+        extraction_data = state.get("extraction_data", {})
+        collections = extraction_data.get("scraping", [])
+        
+        if not collections:
+            return {
+                "extraction_data": extraction_data,
+                "collection_index": 0,
+                "article_index": 0
+            }
+        
+        # Collect all articles with their collection info
+        all_articles_with_context = []
+        for collection_idx, collection in enumerate(collections):
+            articles = collection.get("articles", [])
+            for article_idx, article in enumerate(articles):
+                all_articles_with_context.append({
+                    "article": article,
+                    "collection_idx": collection_idx,
+                    "article_idx": article_idx,
+                    "source": collection.get("source", "Unknown")
+                })
+        
+        total_articles = len(all_articles_with_context)
+        if total_articles == 0:
+            return {
+                "extraction_data": extraction_data,
+                "collection_index": 0,
+                "article_index": 0
+            }
+        
+        print(f"\n{'='*60}")
+        print(f"Ranking {total_articles} articles...")
+        print(f"{'='*60}\n")
+        
+        # Rank each article
+        for idx, item in enumerate(all_articles_with_context):
+            article = item["article"]
+            title = article.get("title", "")
+            content = article.get("content", "")
+            link = article.get("link", "")
+            published = article.get("published", "")
+            source = item["source"]
+            
+            print(f"[{source}] Ranking {idx + 1}/{total_articles}: {title[:50]}...")
+            
+            try:
+                score = rank_article(title, content, link, published, self.llm)
+                article["rank_score"] = score
+                print(f"  Score: {score:.2f}")
+            except Exception as e:
+                print(f"  Error ranking article: {e}")
+                article["rank_score"] = 0.0
+        
+        # Sort all articles by rank_score (descending)
+        all_articles_with_context.sort(key=lambda x: x["article"].get("rank_score", 0.0), reverse=True)
+        
+        # Select top 10 articles
+        top_10 = all_articles_with_context[:int(os.getenv("TOP_RANK"))]
+        
+        print(f"\n{'='*60}")
+        print(f"Selected top {len(top_10)} articles:")
+        for idx, item in enumerate(top_10):
+            article = item["article"]
+            score = article.get("rank_score", 0.0)
+            print(f"  {idx + 1}. [{item['source']}] {article.get('title', '')[:50]}... (Score: {score:.2f})")
+        print(f"{'='*60}\n")
+        
+        # Rebuild collections structure with only top 10 articles
+        # Group articles by their original collection
+        collections_map = {}
+        for item in top_10:
+            collection_idx = item["collection_idx"]
+            article = item["article"]
+            
+            if collection_idx not in collections_map:
+                original_collection = collections[collection_idx]
+                collections_map[collection_idx] = {
+                    "source": original_collection.get("source", "Unknown"),
+                    "articles": []
+                }
+            
+            collections_map[collection_idx]["articles"].append(article)
+        
+        # Create new extraction_data with top 10 articles
+        ranked_collections = [collections_map[idx] for idx in sorted(collections_map.keys())]
+        ranked_extraction_data = {
+            "scraping": ranked_collections
+        }
+        
+        return {
+            "extraction_data": ranked_extraction_data,
+            "collection_index": 0,
+            "article_index": 0
+        }
         
     def _process_node(self, state: AgentState) -> AgentState:
         """Process one article: clean markdown and generate summary."""

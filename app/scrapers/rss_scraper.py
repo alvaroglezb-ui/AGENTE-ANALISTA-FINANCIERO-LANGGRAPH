@@ -1,7 +1,7 @@
 import os
 import json
 from pathlib import Path
-from typing import Dict, Optional, Any, TypedDict, List
+from typing import Dict, Optional, Any, TypedDict, List, NotRequired
 from datetime import datetime, date, timedelta
 import requests
 import feedparser
@@ -21,6 +21,7 @@ class Article(TypedDict):
     published: str
     content: str
     summary: str  # Structured summary in plain language
+    rank_score: NotRequired[Optional[float]]  # Ranking score assigned by LLM (0-100)
 
 
 class collection(TypedDict):
