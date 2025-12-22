@@ -17,9 +17,11 @@ trustcall
 feedparser
 html2text
 markdownify
-SQLAlchemy # (supuesto nombre del package que quieres usar)
+SQLAlchemy==2.0.23# (supuesto nombre del package que quieres usar)
+typing-extensions==4.9.0
 python-dotenv==1.0.1
 IPython
 pygooglenews
 jinja2
 bs4
+
