@@ -17,12 +17,12 @@ trustcall
 feedparser
 html2text
 markdownify
-pygooglenews
+pygooglenews     # duplicated below
 wikipedia
 
 # --- Python core utilities ---
 pydantic==2.6.4
-jinja2
+jinja2           # duplicated below
 python-dotenv==1.0.1
 IPython
 notebook
@@ -34,7 +34,7 @@ tavily-python
 SQLAlchemy==2.0.36
 psycopg2-binary
 
-# --- Data / parsing utilities ---
-pygooglenews
-jinja2
+# --- Data / parsing utilities (duplicates detected above) ---
+# pygooglenews   # Duplicate, already listed above
+# jinja2         # Duplicate, already listed above
 bs4
