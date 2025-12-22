@@ -21,7 +21,7 @@ pygooglenews     # duplicated below
 wikipedia
 
 # --- Python core utilities ---
-pydantic==2.6.4
+pydantic
 jinja2           # duplicated below
 python-dotenv==1.0.1
 IPython
@@ -31,7 +31,7 @@ notebook
 tavily-python
 
 # --- Database + ORM ---
-SQLAlchemy==2.0.36
+SQLAlchemy
 psycopg2-binary
 
 # --- Data / parsing utilities (duplicates detected above) ---
