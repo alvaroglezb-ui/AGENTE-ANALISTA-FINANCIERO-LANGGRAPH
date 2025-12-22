@@ -17,11 +17,24 @@ trustcall
 feedparser
 html2text
 markdownify
-SQLAlchemy==2.0.23
-typing-extensions==4.9.0
+pygooglenews
+wikipedia
+
+# --- Python core utilities ---
+pydantic
+jinja2
 python-dotenv==1.0.1
 IPython
+notebook
+
+# --- Search API ---
+tavily-python
+
+# --- Database + ORM ---
+SQLAlchemy==2.0.21
+psycopg2-binary
+
+# --- Data / parsing utilities ---
 pygooglenews
 jinja2
 bs4
-
