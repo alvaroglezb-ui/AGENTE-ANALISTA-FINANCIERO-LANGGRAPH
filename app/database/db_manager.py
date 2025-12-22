@@ -1,5 +1,6 @@
 from typing import Optional, List
 from datetime import datetime, date
+from sqlalchemy import text
 from app.database.connection import get_engine, get_session
 from app.database.models import Base, Article, Collection, Extraction
 from app.scrapers.rss_scraper import extraction as ExtractionType
@@ -357,6 +358,25 @@ class DatabaseManager:
             
             return news_items
             
+        finally:
+            session.close()
+
+    def get_all_emails(self) -> List[str]:
+        """
+        Retrieve all email addresses from the emails table.
+        
+        Returns:
+            List of email addresses (strings)
+        """
+        session = self.get_session()
+        try:
+            # Query the emails table directly using raw SQL
+            result = session.execute(text("SELECT email FROM emails"))
+            emails = [row[0] for row in result.fetchall()]
+            return emails
+        except Exception as e:
+            print(f"✗ Error retrieving emails: {e}")
+            return []
         finally:
             session.close()
 

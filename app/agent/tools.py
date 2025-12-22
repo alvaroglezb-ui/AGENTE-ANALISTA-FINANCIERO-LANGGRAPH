@@ -203,11 +203,16 @@ def send_email_with_content(items: List[dict], recipients: List[str]) -> bool:
         msg = MIMEText(html_msg, 'html')
         msg['Subject'] = subject
         msg['From'] = sender
-        msg['To'] = ', '.join(recipients)
+        # Set To field to sender to hide recipient list
+        # All recipients will be sent via BCC (included in sendmail but not in headers)
+        msg['To'] = sender
         
         # Send email using Gmail SMTP
+        # Using BCC: recipients are included in sendmail() but won't appear in email headers
+        # This ensures recipients cannot see each other's email addresses
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp_server:
             smtp_server.login(sender, password)
+            # All recipients receive the email, but their addresses are hidden from each other
             smtp_server.sendmail(sender, recipients, msg.as_string())
         
         print(f"✓ Email sent successfully to {len(recipients)} recipient(s)")
