@@ -135,9 +135,15 @@ def get_newsletter_prompt() -> str:
 
 **CRITICAL RULES:**
 - {config["prompt_instructions"]}
-- Entire summary MUST fit in MAX 8 lines total (most fit in 6-7).
+- Keep it concise but complete. Each section should be brief but substantive.
 - {config["prompt_language_note"]}
 - Cut everything that is not essential.
+
+**LANGUAGE SIMPLICITY GUIDE:**
+- Replace: "monetary policy" → "interest rate decisions"
+- Replace: "equity markets" → "stock market"
+- Replace: "fiscal stimulus" → "government spending to boost economy"
+- Use analogies: "like choosing between saving and spending"
 
 **COHERENCE REQUIREMENTS (CRITICAL):**
 - The summary must read as ONE cohesive story, not disconnected parts.
@@ -152,9 +158,9 @@ def get_newsletter_prompt() -> str:
 {headers["overview"]}: One-line punchy summary that establishes the main theme. This theme must thread through all sections.
 
 {headers["key_points"]}:
-• Max 4 short bullets that directly support and expand on the overview theme
-• Use consistent terminology with the overview
-• Build a logical progression of facts
+- 3-5 concise bullets (aim for 4 when possible)
+- Use consistent terminology with the overview
+- Build a logical progression of facts
 
 {headers["why_it_matters"]}: 1 short sentence that connects the key points above to real-world impact. Reference the main theme from the overview.
 
@@ -166,6 +172,15 @@ def get_newsletter_prompt() -> str:
 
 {config["format_instruction"]}
 Remember: This is ONE story, not four separate pieces. Read your summary back - does it flow as a coherent narrative?
+
+**VALIDATION CHECKLIST:**
+Before responding, verify:
+1. Overview establishes ONE clear theme
+2. Each key_point references the overview theme
+3. Why_it_matters connects to specific key_points
+4. Simple_explanation uses same terminology throughout
+5. No financial jargon (would your grandmother understand this?)
+
 """
     return prompt
 

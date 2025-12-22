@@ -17,20 +17,9 @@ trustcall
 feedparser
 html2text
 markdownify
-pygooglenews
-wikipedia
-
-# --- Python core utilities ---
-pydantic
-jinja2
+SQLAlchemy==2.0.23  # (supuesto nombre del package que quieres usar)
 python-dotenv==1.0.1
 IPython
-notebook
-
-# --- Search API ---
-tavily-python
-
-# --- Database + ORM ---
-SQLAlchemy
-psycopg2-binary
-
+pygooglenews
+jinja2
+bs4

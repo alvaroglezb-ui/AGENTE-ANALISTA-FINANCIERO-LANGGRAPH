@@ -7,8 +7,12 @@
 "GOOGLE_NEWS_TOPICS":
     {
 
-        "GENERATIVE_AI_NEWS" : "GENERATIVE AI",
-        "MSCI_WORLD_NEWS" : "MSCI WORLD",
-        "CONSULTING_FIRMS" : "CONSULTING FIRMS"
-    }
+        "GENERATIVE_AI_NEWS" : "GENERATIVEAI"
+    },
+"YAHOO_RSS_URLS" : {
+    "FINANCE_RSS_URL" : "https://news.yahoo.com/rss/finance",
+    "SCIENCE_RSS_URL" : "https://news.yahoo.com/rss/science",
+    "TECH_RSS_URL" : "https://news.yahoo.com/rss/tech",
+    "INDEX_RSS_URL" : "https://finance.yahoo.com/news/rssindex"
+}
 }
