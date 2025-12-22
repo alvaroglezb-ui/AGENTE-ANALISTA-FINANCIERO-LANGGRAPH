@@ -373,7 +373,7 @@ def main_yahoo():
     print("\n" + "=" * 60)
     print("Yahoo News pipeline completed successfully!")
     print("=" * 60)
-    send_daily_news_email(recipients=["alvaroglezb@gmail.com", "alvarocarmo11@gmail.com"])
+    send_daily_news_email(recipients=["alvaroglezb@gmail.com", "alvarocarmo11@gmail.com","tomas.durao@gmail.com","rafozco@gmail.com"])
 
 
 
