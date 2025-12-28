@@ -1,14 +1,4 @@
 {
-"RSS_URLS":
-    {
-    "MSCI_WORLD_NEWS_ULR": "https://news.google.com/rss/search?q=MSCIWORLD&hl=en-US&gl=US&ceid=US:en&when=today",
-    "GOOGLE_NEWS_SP500" : "https://news.google.com/rss/search?q=SP500&hl=en-US&gl=US&ceid=US:en&when=today"
-    },
-"GOOGLE_NEWS_TOPICS":
-    {
-
-        "GENERATIVE_AI_NEWS" : "GENERATIVEAI"
-    },
 "YAHOO_RSS_URLS" : {
     "FINANZAS" : "https://news.yahoo.com/rss/finance",
     "CIENCIA" : "https://news.yahoo.com/rss/science",

@@ -245,10 +245,6 @@ Edit `config/config.json` to add or modify RSS feeds:
 
 ```json
 {
-  "RSS_URLS": {
-    "MSCI_WORLD_NEWS_ULR": "https://news.google.com/rss/search?q=MSCIWORLD&hl=en-US&gl=US&ceid=US:en",
-    "GOOGLE_NEWS_SP500": "https://news.google.com/rss/search?q=SP500&hl=en-US&gl=US&ceid=US:en"
-  },
   "YAHOO_RSS_URLS": {
     "FINANCE_RSS_URL": "https://news.yahoo.com/rss/finance",
     "TECH_RSS_URL": "https://news.yahoo.com/rss/tech"
@@ -476,13 +472,6 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ---
 
 ## 👤 Author
@@ -490,7 +479,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 **Alvaro Gonzalez Bielza**
 
 - LinkedIn: [@alvarogonzalezbielza](https://www.linkedin.com/in/alvarogonzalezbielza)
-- GitHub: [@yourusername](https://github.com/yourusername)
+- GitHub: [@alvaroglezb-ui](https://github.com/alvaroglezb-ui)
 
 ---
 
