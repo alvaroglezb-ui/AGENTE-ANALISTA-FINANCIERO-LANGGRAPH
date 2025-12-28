@@ -1,281 +1,511 @@
-# Agente Analista Financiero - RSS Scraper con Base de Datos
+# 🤖 AI-Powered Financial News Analyzer & Newsletter Generator
 
-Sistema completo para scrapear feeds RSS financieros, almacenar artículos en base de datos y generar reportes diarios sobre MSCI World y otros índices financieros.
+<div align="center">
 
-## 🚀 Características
+**An intelligent LangGraph-based agent that automatically scrapes, analyzes, and summarizes financial news into digestible newsletters for non-expert readers.**
 
-- **Scraping de RSS Feeds**: Recolección automática de artículos de múltiples fuentes RSS
-- **Almacenamiento en Base de Datos**: Persistencia de artículos usando SQLAlchemy (SQLite/PostgreSQL)
-- **Filtrado por Fecha**: Recolección de artículos por rango de fechas o fecha específica
-- **Contenido Markdown**: Descarga y conversión automática del contenido completo de cada artículo
-- **Estructura Modular**: Código organizado en clases y módulos reutilizables
-- **Configuración Flexible**: Soporte para SQLite (por defecto) o PostgreSQL mediante variables de entorno
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Latest-green.svg)](https://langchain-ai.github.io/langgraph/)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-orange.svg)](https://openai.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 📁 Estructura del Proyecto
+</div>
+
+---
+
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Architecture](#-architecture)
+- [Technology Stack](#-technology-stack)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Usage](#-usage)
+- [Project Structure](#-project-structure)
+- [AI Agent Capabilities](#-ai-agent-capabilities)
+- [Deployment](#-deployment)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
+## 🎯 Overview
+
+This project is an **AI-powered financial news aggregation and analysis system** that:
+
+- **Scrapes** financial news from multiple RSS feeds (Yahoo Finance, Google News, custom feeds)
+- **Ranks** articles using AI to identify the most relevant content for young professionals
+- **Translates** article titles to Spanish (or your preferred language)
+- **Summarizes** complex financial news into simple, jargon-free explanations
+- **Generates** beautiful HTML newsletters with structured summaries
+- **Sends** daily email digests to subscribers automatically
+
+Perfect for professionals who want to stay informed about financial markets, technology trends, and corporate news without spending hours reading technical articles.
+
+---
+
+## ✨ Key Features
+
+### 🔍 Intelligent Content Curation
+- **AI-Powered Ranking**: Uses LLM to score articles (0-100) based on relevance for tech-savvy professionals
+- **Smart Filtering**: Prioritizes breaking news, tech companies, AI developments, and market-moving events
+- **Multi-Source Aggregation**: Supports Yahoo Finance, Google News, and custom RSS feeds
+
+### 🤖 LangGraph Agent Workflow
+- **State-Based Processing**: Uses LangGraph for orchestrated article processing pipeline
+- **Automatic Translation**: Translates article titles to target language using structured Pydantic outputs
+- **Content Enhancement**: Fetches missing article content using web search when needed
+- **Markdown Cleaning**: Removes ads, navigation, and noise to extract pure content
+
+### 📝 Expert Summarization
+- **Plain Language**: Converts complex financial jargon into simple explanations
+- **Structured Format**: Generates summaries with Overview, Key Points, Why It Matters, and Simple Explanation
+- **Company Context**: Automatically explains what companies do and why they're relevant
+- **Jargon Explanation**: Every technical term is explained inline for complete understanding
+
+### 📧 Newsletter Generation
+- **Beautiful HTML Templates**: Professional, responsive email design
+- **Multi-Language Support**: Spanish and English summaries
+- **Automated Delivery**: Sends daily digests to subscriber list
+- **Database Integration**: Tracks articles, prevents duplicates, and maintains history
+
+### 🗄️ Flexible Database
+- **SQLite Default**: Works out-of-the-box with no configuration
+- **PostgreSQL Support**: Production-ready with environment variables
+- **Automatic Schema**: Creates tables and manages relationships automatically
+
+---
+
+## 🏗️ Architecture
+
+The system follows a **LangGraph-based agent architecture** with the following workflow:
 
 ```
-AGENTE-ANALISTA-FINANCIERO-LANGGRAPH/
-├── app/
-│   ├── database/
-│   │   ├── connection.py      # Gestión centralizada de conexión a BD
-│   │   ├── models.py          # Modelos SQLAlchemy (Article, Collection, Extraction)
-│   │   ├── db_manager.py      # Operaciones de base de datos
-│   │   └── README.md          # Documentación de la base de datos
-│   └── scrapers/
-│       └── rss_scraper.py     # Clases RSSFetcher y Scraper
-├── config/
-│   └── config.json            # URLs de feeds RSS
-├── examples/
-│   └── database_example.py    # Ejemplo de uso de la base de datos
-├── docker/
-│   └── docker-compose.yml     # Configuración Docker (opcional)
-├── run_scraper.py             # Script principal unificado
-├── requirements.txt           # Dependencias del proyecto
-└── README.md                  # Este archivo
+┌─────────────────┐
+│  RSS Feeds      │
+│  (Yahoo, etc.)  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  RSS Scraper     │
+│  (Collection)    │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────────┐
+│  LangGraph Agent Pipeline       │
+│  ┌───────────────────────────┐ │
+│  │  1. Rank Articles         │ │
+│  │     (AI Scoring 0-100)    │ │
+│  └───────────┬───────────────┘ │
+│              ▼                  │
+│  ┌───────────────────────────┐ │
+│  │  2. Process Articles       │ │
+│  │     - Translate Title     │ │
+│  │     - Clean Markdown       │ │
+│  │     - Fetch Content        │ │
+│  │     - Generate Summary     │ │
+│  └───────────┬───────────────┘ │
+│              ▼                  │
+│  ┌───────────────────────────┐ │
+│  │  3. Store in Database      │ │
+│  └───────────────────────────┘ │
+└───────────┬─────────────────────┘
+            │
+            ▼
+┌─────────────────┐
+│  Database       │
+│  (SQLite/PG)    │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Email Generator│
+│  (HTML Template) │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Subscribers    │
+└─────────────────┘
 ```
 
-## 🔧 Instalación
+### Agent State Management
 
-### Requisitos
+The LangGraph agent uses a `TypedDict` state that tracks:
+- `extraction_data`: All scraped articles organized by source
+- `collection_index`: Current collection being processed
+- `article_index`: Current article within collection
 
-- Python 3.8+
-- pip
+---
 
-### Pasos
+## 🛠️ Technology Stack
 
-1. **Clonar el repositorio** (o descargar el código)
+### Core Framework
+- **LangGraph**: Agent orchestration and workflow management
+- **LangChain**: LLM integration and prompt management
+- **OpenAI GPT-4**: Article analysis, summarization, and translation
 
-2. **Instalar dependencias**:
+### Data Processing
+- **SQLAlchemy**: Database ORM and connection management
+- **Feedparser**: RSS feed parsing
+- **BeautifulSoup4**: HTML parsing and content extraction
+- **Markdownify**: HTML to Markdown conversion
+
+### Infrastructure
+- **Python 3.8+**: Core language
+- **Pydantic**: Structured output validation
+- **Jinja2**: HTML template rendering
+- **python-dotenv**: Environment variable management
+
+### Database
+- **SQLite**: Default database (no configuration needed)
+- **PostgreSQL**: Production database (via environment variables)
+
+### Deployment
+- **Render**: Cloud hosting and scheduled jobs
+- **Docker**: Containerization support
+
+---
+
+## 📦 Installation
+
+### Prerequisites
+
+- Python 3.8 or higher
+- pip package manager
+- OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/AGENTE-ANALISTA-FINANCIERO-LANGGRAPH.git
+cd AGENTE-ANALISTA-FINANCIERO-LANGGRAPH
+```
+
+### Step 2: Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-3. **Configurar variables de entorno** (opcional):
+### Step 3: Set Up Environment Variables
+
+Copy the example environment file:
+
 ```bash
-# Crear archivo .env en la raíz del proyecto
-# Para PostgreSQL (opcional):
+cp .env.example .env
+```
+
+Edit `.env` and add your configuration (see [Configuration](#-configuration) section).
+
+---
+
+## ⚙️ Configuration
+
+### Required Environment Variables
+
+```bash
+# OpenAI API (Required)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Email Configuration (Required for newsletters)
+EMAIL_SUBJECT=Daily News Brief
+EMAIL_SENDER=your_email@gmail.com
+EMAIL_PASSWORD=your_gmail_app_password  # Use App Password, not regular password
+```
+
+### Optional Environment Variables
+
+```bash
+# Language Configuration
+LANGUAGE=ES  # Options: "ES" (Spanish) or "ENG" (English)
+
+# AI Model Configuration
+AGENT_MODEL=gpt-4o-mini  # Model for article processing
+WEB_SEARCH_MODEL=gpt-4o  # Model for web search (when content is missing)
+
+# Article Processing
+TOP_RANK=10  # Number of top articles to include in newsletter
+MAX_ARTICLES=10  # Maximum articles per RSS feed
+
+# PostgreSQL (Optional - uses SQLite if not set)
 POSTGRES_USER=your_user
 POSTGRES_PASSWORD=your_password
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
-POSTGRES_DB=your_database
-
-# Para OpenAI (si usas el agente):
-OPENAI_API_KEY=your_openai_key
+POSTGRES_DB=rss_articles
 ```
 
-**Nota**: Si no configuras PostgreSQL, el sistema usará SQLite automáticamente.
+### RSS Feed Configuration
 
-## ⚙️ Configuración
-
-### 1. Configurar Feeds RSS
-
-Edita `config/config.json` para añadir o modificar feeds:
+Edit `config/config.json` to add or modify RSS feeds:
 
 ```json
 {
   "RSS_URLS": {
-    "MSCI_WORLD_NEWS_ULR": "https://ir.msci.com/rss/news-releases.xml",
-    "SP500_DAILY_INSIGHTS": "https://www.spglobal.com/spdji/en/rss",
-    "NASDAQ_NEWS_URL": "https://www.nasdaq.com/feed/nasdaq-original/rss.xml"
+    "MSCI_WORLD_NEWS_ULR": "https://news.google.com/rss/search?q=MSCIWORLD&hl=en-US&gl=US&ceid=US:en",
+    "GOOGLE_NEWS_SP500": "https://news.google.com/rss/search?q=SP500&hl=en-US&gl=US&ceid=US:en"
+  },
+  "YAHOO_RSS_URLS": {
+    "FINANCE_RSS_URL": "https://news.yahoo.com/rss/finance",
+    "TECH_RSS_URL": "https://news.yahoo.com/rss/tech"
   }
 }
 ```
 
-### 2. Base de Datos
+---
 
-El sistema gestiona automáticamente la conexión:
+## 🚀 Usage
 
-- **SQLite (por defecto)**: No requiere configuración. Crea `rss_articles.db` automáticamente.
-- **PostgreSQL**: Configura las variables de entorno en `.env` (ver sección Instalación).
+### Quick Start
 
-## 📖 Uso
-
-### Uso Básico - Script Unificado
-
-El script `run_scraper.py` ejecuta todo el pipeline:
+Run the complete pipeline:
 
 ```bash
-python run_scraper.py
+python main.py
 ```
 
-Este script:
-1. Crea las tablas de base de datos
-2. Obtiene los feeds RSS configurados
-3. Scrapea artículos de los últimos 7 días (configurable)
-4. Descarga el contenido markdown de cada artículo
-5. Inserta todo en la base de datos
-6. Muestra un resumen
+This will:
+1. ✅ Create database tables
+2. ✅ Fetch RSS feeds
+3. ✅ Scrape articles from the last day
+4. ✅ Rank articles using AI
+5. ✅ Process top articles (translate, summarize)
+6. ✅ Store in database
+7. ✅ Generate and send email newsletter
 
-### Uso Avanzado - Programático
+### Programmatic Usage
 
 ```python
-from app.scrapers.rss_scraper import RSSFetcher, Scraper
+from app.scrapers.yahoo_scraper import YahooScraper, YahooRSSFetcher
 from app.database.db_manager import DatabaseManager
+from app.agent.agent import ArticleSummarizerAgent
+from app.agent.tools import send_daily_news_email
 from datetime import date, timedelta
 
-# 1. Inicializar base de datos
+# 1. Initialize database
 db_manager = DatabaseManager()
 db_manager.create_tables()
 
-# 2. Obtener feeds
-fetcher = RSSFetcher(config_path="config/config.json")
+# 2. Fetch and scrape articles
+fetcher = YahooRSSFetcher(config_path="config/config.json")
 fetcher.fetch_all()
+scraper = YahooScraper(fetcher)
 
-# 3. Scrapear artículos
-scraper = Scraper(fetcher)
-
-# Opción A: Últimos 7 días
 today = date.today()
-week_ago = today - timedelta(days=7)
-result = scraper.collect_date_range(start_date=week_ago, end_date=today)
+extraction = scraper.collect_date_range(
+    start_date=today - timedelta(days=1),
+    end_date=today
+)
 
-# Opción B: Solo hoy
-result = scraper.collect_all(filter_date=today)
+# 3. Process with AI agent
+agent = ArticleSummarizerAgent()
+extraction = agent.process_extraction(extraction)
 
-# Opción C: Todos los artículos
-result = scraper.collect_all()
+# 4. Store in database
+extraction_id = db_manager.insert_extraction(extraction)
 
-# 4. Guardar en base de datos
-extraction_id = scraper.save_to_database()
-print(f"Inserted extraction ID: {extraction_id}")
-
-# 5. Consultar base de datos
-collections = db_manager.get_collections()
-for col in collections:
-    print(f"{col['source']}: {col['article_count']} articles")
+# 5. Send newsletter
+recipients = db_manager.get_all_emails()
+send_daily_news_email(recipients=recipients)
 ```
 
-### Filtrado por Fecha
+### Custom Date Ranges
 
 ```python
-from datetime import date, timedelta
+from datetime import date
 
-# Filtrar por fecha específica
-today = date.today()
-result = scraper.collect_all(filter_date=today)
+# Last 7 days
+start_date = date.today() - timedelta(days=7)
+extraction = scraper.collect_date_range(start_date=start_date, end_date=date.today())
 
-# Filtrar por rango
-start = date(2025, 11, 1)
-end = date(2025, 11, 30)
-result = scraper.collect_date_range(start_date=start, end_date=end)
-
-# Filtrar un feed específico
-collection = scraper.collect_feed("MSCI_WORLD_NEWS_ULR", filter_date=today)
+# Specific date range
+extraction = scraper.collect_date_range(
+    start_date=date(2025, 1, 1),
+    end_date=date(2025, 1, 31)
+)
 ```
 
-### Consultar Base de Datos
+---
 
-```python
-from app.database.db_manager import DatabaseManager
-
-db = DatabaseManager()
-
-# Obtener todas las colecciones
-collections = db.get_collections()
-for col in collections:
-    print(f"{col['source']}: {col['article_count']} articles")
-
-# Obtener artículos por fuente
-articles = db.get_articles_by_source("MSCI_WORLD_NEWS_ULR")
-for article in articles:
-    print(f"{article.title} - {article.link}")
-
-# Obtener todos los artículos (con límite)
-articles = db.get_all_articles(limit=10)
-```
-
-## 🗄️ Modelos de Base de Datos
-
-### Article
-- `id`: ID único
-- `title`: Título del artículo
-- `source`: Nombre de la fuente RSS
-- `link`: URL del artículo (único)
-- `published`: Fecha de publicación
-- `content`: Contenido en markdown
-- `collection_id`: Foreign key a Collection
-- `created_at`: Timestamp de inserción
-
-### Collection
-- `id`: ID único
-- `source`: Nombre de la fuente (único)
-- `extraction_id`: Foreign key a Extraction (opcional)
-- `created_at`: Timestamp de creación
-- `updated_at`: Timestamp de actualización
-
-### Extraction
-- `id`: ID único
-- `created_at`: Timestamp de la extracción
-
-## 🔄 Flujo de Datos
+## 📁 Project Structure
 
 ```
-RSS Feeds → RSSFetcher → Scraper → Extraction (TypedDict)
-                                      ↓
-                              DatabaseManager → SQLAlchemy Models
-                                      ↓
-                                 Database (SQLite/PostgreSQL)
+AGENTE-ANALISTA-FINANCIERO-LANGGRAPH/
+├── app/
+│   ├── agent/                    # AI Agent Module
+│   │   ├── agent.py              # LangGraph agent implementation
+│   │   ├── tools.py              # Article processing tools
+│   │   ├── prompts.py            # LLM prompts for summarization
+│   │   ├── schemas.py            # Pydantic models for structured output
+│   │   ├── language_config.py    # Multi-language support
+│   │   └── graph_schema.png       # Visual agent workflow
+│   │
+│   ├── database/                  # Database Module
+│   │   ├── connection.py         # Database connection management
+│   │   ├── models.py             # SQLAlchemy models
+│   │   ├── db_manager.py        # Database operations
+│   │   └── README.md            # Database documentation
+│   │
+│   ├── scrapers/                  # RSS Scrapers
+│   │   ├── rss_scraper.py       # Generic RSS scraper
+│   │   ├── yahoo_scraper.py     # Yahoo Finance scraper
+│   │   └── google_news_scraper.py # Google News scraper
+│   │
+│   └── templates/                 # Email Templates
+│       └── template.html         # HTML newsletter template
+│
+├── config/
+│   └── config.json               # RSS feed configuration
+│
+├── docker/
+│   └── docker-compose.yml        # Docker configuration
+│
+├── main.py                        # Main entry point
+├── requirements.txt               # Python dependencies
+├── .env.example                   # Environment variables template
+├── render.yaml                    # Render.com deployment config
+└── README.md                      # This file
 ```
 
-## 📊 Ejemplos
+---
 
-Ver `examples/database_example.py` para un ejemplo completo de uso.
+## 🤖 AI Agent Capabilities
 
-## 🔐 Variables de Entorno
+### 1. Article Ranking
 
-### Base de Datos (PostgreSQL - Opcional)
-- `POSTGRES_USER`: Usuario de PostgreSQL
-- `POSTGRES_PASSWORD`: Contraseña
-- `POSTGRES_HOST`: Host (default: localhost)
-- `POSTGRES_PORT`: Puerto (default: 5432)
-- `POSTGRES_DB`: Nombre de la base de datos
+The agent uses an LLM to score articles (0-100) based on:
+- **Technology Relevance**: AI, agents, tech companies, startups
+- **Market Impact**: Stock movements, IPOs, M&A activity
+- **Timeliness**: Breaking news gets higher scores
+- **Audience Fit**: Content for young professionals (20-35 years)
 
-### OpenAI (Opcional - para el agente)
-- `OPENAI_API_KEY`: Clave de API de OpenAI
+### 2. Title Translation
 
-## 🤖 Agente con LangGraph (Futuro)
+- Uses **structured Pydantic output** to ensure clean translations
+- Preserves company names and proper nouns
+- Automatically translates to configured language (ES/ENG)
 
-El proyecto incluye estructura para un agente LangGraph que:
-- Sintetiza noticias en lenguaje "for dummies"
-- Genera conclusiones accionables
-- Envía reportes por email
+### 3. Content Processing
 
-Ver `app/agent/agent.py` para más detalles (si está implementado).
+- **Markdown Cleaning**: Removes ads, navigation, footers
+- **Web Search**: Fetches missing content using OpenAI's web search
+- **Content Extraction**: Preserves important data (numbers, dates, names)
 
-## 🐳 Docker (Opcional)
+### 4. Summarization
 
-Si usas PostgreSQL, puedes usar Docker:
+Generates structured summaries with:
+- **Overview**: One-line punchy summary
+- **Key Points**: 3-5 bullet points with critical facts
+- **Why It Matters**: Real-world impact explanation
+- **Simple Explanation**: Complete narrative in plain language
+
+**Special Features**:
+- Explains every financial term inline
+- Provides context for every company mentioned
+- Uses consistent terminology throughout
+- Validates coherence across all sections
+
+### 5. Language Support
+
+- **Spanish (ES)**: Full support with Spanish headers and content
+- **English (ENG)**: Full support with English headers and content
+- **Automatic Detection**: Detects language from summary headers
+
+---
+
+## 🚢 Deployment
+
+### Render.com Deployment
+
+The project includes a `render.yaml` configuration for easy deployment:
+
+1. **Create a Render account** and connect your repository
+2. **Set up a PostgreSQL database** (or use SQLite)
+3. **Create a Cron Job** using the `render.yaml` configuration
+4. **Add environment variables** in Render dashboard
+5. **Deploy** - The job will run daily at midnight UTC
+
+### Docker Deployment
 
 ```bash
 cd docker
 docker-compose up -d
 ```
 
-## 📝 Notas
+### Manual Deployment
 
-- **SQLite por defecto**: Si no configuras PostgreSQL, el sistema usa SQLite automáticamente
-- **Detección automática**: El sistema detecta si `psycopg2` está instalado y ajusta el comportamiento
-- **Sin duplicados**: Los artículos se identifican por su `link` único, evitando duplicados
-- **Filtrado inteligente**: El sistema parsea fechas de múltiples formatos RSS
+1. Set up a cron job or scheduled task
+2. Run `python main.py` daily
+3. Ensure environment variables are set
+4. Monitor logs for errors
 
-## 🛠️ Troubleshooting
+---
 
-### Error: "PostgreSQL driver not found"
-- **Solución**: El sistema automáticamente usa SQLite como fallback
-- **Para usar PostgreSQL**: `pip install psycopg2-binary`
+## 📊 Example Output
 
-### Error: "Could not determine join condition"
-- **Solución**: Asegúrate de recrear las tablas ejecutando `db_manager.create_tables()`
+### Article Summary Format
 
-### Feeds no se cargan
-- Verifica que las URLs en `config/config.json` sean válidas
-- Algunos feeds pueden requerir headers específicos (ya implementados)
+```
+RESUMEN:
+Apple (fabricante de iPhone) anuncia ganancias récord de $100B
 
-## 📄 Licencia
+PUNTOS CLAVE:
+• Apple reportó ganancias (dinero ganado) de $100 mil millones
+• Las ventas de iPhone aumentaron 20% este trimestre
+• La empresa anunció un nuevo programa de recompra de acciones (comprar sus propias acciones)
 
-[Especificar licencia si aplica]
+POR QUÉ IMPORTA:
+Esto muestra que Apple sigue siendo una de las empresas más valiosas del mundo, lo que puede afectar el precio de sus acciones y la confianza de los inversores.
 
-## 🤝 Contribuciones
+EXPLICACIÓN SIMPLE:
+Apple ganó más dinero que nunca, principalmente porque vendió más iPhones. Cuando una empresa gana mucho dinero, su valor aumenta y los inversores quieren comprar sus acciones, lo que puede hacer que el precio suba.
+```
 
-[Instrucciones de contribución si aplica]
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 👤 Author
+
+**Alvaro Gonzalez Bielza**
+
+- LinkedIn: [@alvarogonzalezbielza](https://www.linkedin.com/in/alvarogonzalezbielza)
+- GitHub: [@yourusername](https://github.com/yourusername)
+
+---
+
+## 🙏 Acknowledgments
+
+- **LangGraph** team for the amazing agent framework
+- **OpenAI** for GPT-4 and API access
+- **LangChain** community for excellent documentation and tools
+
+---
+
+<div align="center">
+
+**⭐ If you find this project useful, please consider giving it a star! ⭐**
+
+Made with ❤️ using LangGraph and OpenAI
+
+</div>
