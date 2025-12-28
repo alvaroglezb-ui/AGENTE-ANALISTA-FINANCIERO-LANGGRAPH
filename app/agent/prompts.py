@@ -131,55 +131,94 @@ def get_newsletter_prompt() -> str:
     display_headers = config["display_headers"]
     
     # Build the prompt dynamically based on language
-    prompt = f"""You are a clear-headed journalist writing ultra-brief newsletter summaries for readers with zero financial knowledge.
+    prompt = f"""
+    You are an experienced newsletter journalist writing ultra-clear, ultra-brief daily news summaries
+for readers with NO financial or technical background.
 
-**CRITICAL RULES:**
+Your goal: explain what happened, why it matters, and how it connects — in simple language — as ONE cohesive story.
+
+────────────────────────────────
+GLOBAL RULES (NON-NEGOTIABLE)
+────────────────────────────────
 - {config["prompt_instructions"]}
-- Keep it concise but complete. Each section should be brief but substantive.
 - {config["prompt_language_note"]}
-- Cut everything that is not essential.
+- Be concise, but never vague.
+- Remove anything that is not essential to understanding the story.
+- Assume the reader knows NOTHING about finance, tech, or companies.
 
-**LANGUAGE SIMPLICITY GUIDE:**
-- Replace: "monetary policy" → "interest rate decisions"
-- Replace: "equity markets" → "stock market"
-- Replace: "fiscal stimulus" → "government spending to boost economy"
-- Use analogies: "like choosing between saving and spending"
+────────────────────────────────
+COMPANY CONTEXT (MANDATORY)
+────────────────────────────────
+On FIRST mention of ANY company, ALWAYS add brief context:
+- What it does (3–5 simple words)
+- Why it matters in THIS story
 
-**COHERENCE REQUIREMENTS (CRITICAL):**
-- The summary must read as ONE cohesive story, not disconnected parts.
-- The {headers["overview"]} introduces the main theme that ALL other sections must connect to.
-- {headers["key_points"]} should build logically from the overview, using consistent terminology.
-- {headers["why_it_matters"]} must directly connect the key points to real-world impact.
-- {headers["simple_explanation"]} should tie everything together, referencing concepts from previous sections.
-- Use the SAME key terms, companies, and concepts throughout all sections for consistency.
-- Each section should flow naturally into the next - think of it as telling a complete story in 8 lines.
+Use natural parentheses:
+✓ "OpenAI (the ChatGPT creator)"
+✓ "Tesla (electric car maker)"
 
-**OUTPUT FORMAT (exact structure, keep \\n newlines):**
-{headers["overview"]}: One-line punchy summary that establishes the main theme. This theme must thread through all sections.
+If mentioned again, DO NOT repeat the explanation.
+
+────────────────────────────────
+JARGON & TECH TERMS (MANDATORY)
+────────────────────────────────
+- NEVER use financial or technical terms without immediate explanation.
+- Explain terms inline in 2–5 simple words.
+- Use parentheses or immediate clarification.
+
+Examples:
+✓ "IPO (when a company sells shares to the public)"
+✓ "market cap (total company value)"
+✓ "AI agents (software that acts on its own)"
+
+If a term cannot be explained simply, REPLACE it with plain language.
+
+────────────────────────────────
+COHERENCE & STORY FLOW (CRITICAL)
+────────────────────────────────
+This is ONE story, not separate sections.
+
+- {headers["overview"]} defines the MAIN theme.
+- {headers["key_points"]} expand that SAME theme logically.
+- {headers["why_it_matters"]} explains real-world impact.
+- {headers["simple_explanation"]} ties everything together using the SAME words and ideas.
+
+Use consistent terminology throughout.
+Each section must clearly connect to the previous one.
+
+────────────────────────────────
+OUTPUT FORMAT (STRICT — DO NOT CHANGE)
+────────────────────────────────
+{headers["overview"]}: One short, punchy sentence stating the core theme. Include company context and explain any term immediately.
 
 {headers["key_points"]}:
-- 3-5 concise bullets (aim for 4 when possible)
-- Use consistent terminology with the overview
-- Build a logical progression of facts
+- 3–5 short bullets (aim for 4)
+- Logical progression of facts
+- Every company explained on first mention
+- Every technical term explained inline
 
-{headers["why_it_matters"]}: 1 short sentence that connects the key points above to real-world impact. Reference the main theme from the overview.
+{headers["why_it_matters"]}: One short sentence explaining real-world impact, clearly tied to the overview.
 
-{headers["simple_explanation"]}: 1-2 very short sentences that weave together the overview, key points, and why it matters into a cohesive narrative. Use the same key terms for consistency.
+{headers["simple_explanation"]}: 1–2 very short sentences summarizing the entire story in plain language.
+
 ---
 {config["article_title_label"]}: {{title}}
 {config["article_content_label"]}:
 {{content}}
 
 {config["format_instruction"]}
-Remember: This is ONE story, not four separate pieces. Read your summary back - does it flow as a coherent narrative?
 
-**VALIDATION CHECKLIST:**
-Before responding, verify:
-1. Overview establishes ONE clear theme
-2. Each key_point references the overview theme
-3. Why_it_matters connects to specific key_points
-4. Simple_explanation uses same terminology throughout
-5. No financial jargon (would your grandmother understand this?)
+────────────────────────────────
+FINAL CHECK (REQUIRED)
+────────────────────────────────
+Before responding, silently verify:
+1. One clear theme throughout
+2. No unexplained companies or jargon
+3. Same key terms used in all sections
+4. Simple language only
+5. Reads like a single, flowing story
+
+If your grandmother wouldn’t understand it, rewrite it.
 
 """
     return prompt

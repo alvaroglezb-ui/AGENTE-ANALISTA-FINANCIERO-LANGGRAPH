@@ -30,3 +30,11 @@ class ArticleRank(BaseModel):
         ge=0.0,
         le=100.0
     )
+
+
+class TitleTranslation(BaseModel):
+    """Translated article title."""
+    
+    translated_title: str = Field(
+        description="The article title translated to Spanish, preserving proper nouns (company names, people names, etc.)"
+    )

@@ -6,10 +6,12 @@ import io
 from typing import TypedDict
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
 from openai import OpenAI
 from app.scrapers.rss_scraper import extraction
 from app.agent.tools import clean_markdown, summarize_article, summarize_article_with_web_search, rank_article
 from app.agent.language_config import get_language_config, get_header
+from app.agent.schemas import TitleTranslation
 from IPython.display import Image, display
 from dotenv import load_dotenv
 load_dotenv()
@@ -73,6 +75,24 @@ class ArticleSummarizerAgent:
         except Exception as e:
             print(f"⚠️  Warning: Could not save graph schema: {e}")
     
+    def _translate_title(self, title: str) -> str:
+        """Translate article title to Spanish using structured output."""
+        if not title or not title.strip():
+            return title
+        
+        try:
+            prompt_template = ChatPromptTemplate.from_template(
+                "Traduce este título al español. Mantén nombres propios (empresas, personas) sin cambios.\n\nTítulo: {title}"
+            )
+            structured_llm = self.llm.with_structured_output(TitleTranslation)
+            chain = prompt_template | structured_llm
+            
+            result = chain.invoke({"title": title})
+            return result.translated_title
+        except Exception as e:
+            print(f"⚠️  Error traduciendo título: {e}")
+            return title
+    
     def _rank_node(self, state: AgentState) -> AgentState:
         """Rank all articles and select top 10 based on ranking score."""
         extraction_data = state.get("extraction_data", {})
@@ -131,8 +151,14 @@ class ArticleSummarizerAgent:
         # Sort all articles by rank_score (descending)
         all_articles_with_context.sort(key=lambda x: x["article"].get("rank_score", 0.0), reverse=True)
         
-        # Select top 10 articles
-        top_10 = all_articles_with_context[:int(os.getenv("TOP_RANK"))]
+        # Select top N articles (default: 10)
+        try:
+            top_rank = int(os.getenv("TOP_RANK", "10"))
+        except (ValueError, TypeError):
+            print(f"⚠️  Warning: TOP_RANK env var is invalid, using default value: 10")
+            top_rank = 10
+        
+        top_10 = all_articles_with_context[:top_rank]
         
         print(f"\n{'='*60}")
         print(f"Selected top {len(top_10)} articles:")
@@ -194,9 +220,14 @@ class ArticleSummarizerAgent:
         
         # Get article and update in-place
         article = articles[article_index]
-        title = article.get("title", "")
+        original_title = article.get("title", "")
         date = article.get("published", "")
         source = collection.get("source", "Unknown")
+        
+        # Translate title to Spanish
+        translated_title = self._translate_title(original_title)
+        article["title"] = translated_title
+        title = translated_title  # Use translated title for processing
         
         print(f"[{source}] Processing {article_index + 1}/{len(articles)}: {title[:50]}...")
         

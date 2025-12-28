@@ -64,6 +64,9 @@ class DatabaseManager:
 
                 # Insert articles
                 for article_data in collection_data.get("articles", []):
+                    # Use article source or fallback to collection source
+                    article_source = article_data.get("source", "") or source
+                    
                     # Check if article already exists (by link)
                     existing_article = session.query(Article).filter_by(
                         link=article_data.get("link", "")
@@ -72,7 +75,7 @@ class DatabaseManager:
                     if not existing_article:
                         article = Article(
                             title=article_data.get("title", ""),
-                            source=article_data.get("source", ""),
+                            source=article_source,
                             link=article_data.get("link", ""),
                             published=article_data.get("published", ""),
                             content=article_data.get("content", ""),
@@ -81,11 +84,15 @@ class DatabaseManager:
                         )
                         session.add(article)
                     else:
-                        # Update existing article with summary if provided
+                        # Update existing article with new data if provided
+                        if article_data.get("title"):
+                            existing_article.title = article_data.get("title", "")
                         if article_data.get("summary"):
                             existing_article.summary = article_data.get("summary", "")
                         if article_data.get("content"):
                             existing_article.content = article_data.get("content", "")
+                        if article_source:
+                            existing_article.source = article_source
 
             session.commit()
             print(f"✓ Inserted extraction with {len(extraction_data.get('scraping', []))} collections")
