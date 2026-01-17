@@ -13,6 +13,6 @@
     "FINANZAS" : "https://news.yahoo.com/rss/finance",
     "CIENCIA" : "https://news.yahoo.com/rss/science",
     "TECNOLOGIA" : "https://news.yahoo.com/rss/tech",
-    "STOCKS" : "https://finance.yahoo.com/news/rssindex"
+    "RANDOM" : "https://finance.yahoo.com/news/rssindex"
 }
 }
