@@ -10,9 +10,9 @@
         "GENERATIVE_AI_NEWS" : "GENERATIVEAI"
     },
 "YAHOO_RSS_URLS" : {
-    "FINANZAS" : "https://news.yahoo.com/rss/finance",
+    "RANDOM" : "https://news.yahoo.com/rss/finance",
     "CIENCIA" : "https://news.yahoo.com/rss/science",
     "TECNOLOGIA" : "https://news.yahoo.com/rss/tech",
-    "RANDOM" : "https://finance.yahoo.com/news/rssindex"
+    "FINANZAS" : "https://finance.yahoo.com/news/rssindex"
 }
 }
